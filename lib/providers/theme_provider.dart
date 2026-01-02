@@ -10,34 +10,34 @@ class ThemeProvider extends ChangeNotifier {
 
   bool get isDarkMode => _isDarkMode;
 
-  // Modern blue/purple gradient colors from the provided image
-  static const Color _primaryBlue = Color(0xFF4C63D2); // Deep blue from image
-  static const Color _primaryPurple = Color(0xFF5A67D8); // Rich purple-blue
-  static const Color _accentBlue = Color(0xFF667EEA); // Lighter blue
-  static const Color _lightBlue = Color(0xFF9F7AEA); // Light purple-blue
-  static const Color _softBlue = Color(0xFFBBD5FF); // Very light blue
-  static const Color _darkBlue = Color(0xFF3C4FE0); // Dark blue
+  // Colors matching the app icon - blue to cyan gradient
+  static const Color _deepBlue = Color(0xFF1E5AA8); // Deep blue from icon
+  static const Color _mediumBlue = Color(0xFF2B7DE9); // Medium blue from icon
+  static const Color _brightCyan = Color(0xFF00D4FF); // Bright cyan from icon
+  static const Color _lightCyan = Color(0xFF5DDBFF); // Light cyan from icon
+  static const Color _darkBlue = Color(0xFF1A4C96); // Darker variant
+  static const Color _softCyan = Color(0xFF87E8FF); // Softer cyan
 
-  // Gradient colors matching the blue theme from image
+  // Static gradient colors matching the icon exactly
   static const List<Color> gradientColors = [
-    Color(0xFF4C63D2), // Deep Blue (primary from image)
-    Color(0xFF5A67D8), // Purple Blue
-    Color(0xFF667EEA), // Indigo Blue
-    Color(0xFF7C3AED), // Purple
-    Color(0xFF8B5CF6), // Light Purple
-    Color(0xFF9F7AEA), // Lavender
-    Color(0xFFBBD5FF), // Light Blue
-    Color(0xFF3C4FE0), // Dark Blue
+    Color(0xFF1E5AA8), // Deep Blue (left side of icon)
+    Color(0xFF2B7DE9), // Medium Blue
+    Color(0xFF00D4FF), // Bright Cyan (right side of icon)
+    Color(0xFF5DDBFF), // Light Cyan
+    Color(0xFF87E8FF), // Soft Cyan
+    Color(0xFF1A4C96), // Dark Blue variant
+    Color(0xFF4FC3F7), // Sky Blue
+    Color(0xFF29B6F6), // Light Blue
   ];
 
   ThemeData get lightTheme => ThemeData(
     useMaterial3: true,
     colorScheme: ColorScheme.fromSeed(
-      seedColor: _primaryBlue,
+      seedColor: _mediumBlue,
       brightness: Brightness.light,
-      primary: _primaryBlue,
-      secondary: _accentBlue,
-      tertiary: _lightBlue,
+      primary: _mediumBlue,
+      secondary: _brightCyan,
+      tertiary: _lightCyan,
       surface: const Color(0xFFFAFAFA),
       surfaceVariant: const Color(0xFFF5F5F5),
     ),
@@ -73,7 +73,7 @@ class ThemeProvider extends ChangeNotifier {
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
       elevation: 0,
       backgroundColor: Colors.white,
-      selectedItemColor: _primaryBlue,
+      selectedItemColor: _mediumBlue,
       unselectedItemColor: const Color(0xFF9E9E9E),
       type: BottomNavigationBarType.fixed,
       selectedLabelStyle: const TextStyle(
@@ -87,7 +87,7 @@ class ThemeProvider extends ChangeNotifier {
     ),
     chipTheme: ChipThemeData(
       backgroundColor: const Color(0xFFF3F4F6),
-      selectedColor: _primaryBlue.withOpacity(0.1),
+      selectedColor: _mediumBlue.withOpacity(0.1),
       labelStyle: const TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.w500,
@@ -109,7 +109,7 @@ class ThemeProvider extends ChangeNotifier {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: _primaryBlue, width: 2),
+        borderSide: const BorderSide(color: _mediumBlue, width: 2),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
     ),
@@ -153,11 +153,11 @@ class ThemeProvider extends ChangeNotifier {
   ThemeData get darkTheme => ThemeData(
     useMaterial3: true,
     colorScheme: ColorScheme.fromSeed(
-      seedColor: _primaryBlue,
+      seedColor: _mediumBlue,
       brightness: Brightness.dark,
-      primary: const Color(0xFF7C3AED),
-      secondary: const Color(0xFF8B5CF6),
-      tertiary: const Color(0xFF9F7AEA),
+      primary: const Color(0xFF4FC3F7),
+      secondary: const Color(0xFF00D4FF),
+      tertiary: const Color(0xFF87E8FF),
       surface: const Color(0xFF1E1E1E),
       surfaceVariant: const Color(0xFF2A2A2A),
     ),
@@ -193,7 +193,7 @@ class ThemeProvider extends ChangeNotifier {
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
       elevation: 0,
       backgroundColor: Color(0xFF1E1E1E),
-      selectedItemColor: Color(0xFF7C3AED),
+      selectedItemColor: Color(0xFF4FC3F7),
       unselectedItemColor: Color(0xFF757575),
       type: BottomNavigationBarType.fixed,
       selectedLabelStyle: TextStyle(
@@ -207,7 +207,7 @@ class ThemeProvider extends ChangeNotifier {
     ),
     chipTheme: ChipThemeData(
       backgroundColor: const Color(0xFF2A2A2A),
-      selectedColor: const Color(0xFF7C3AED).withOpacity(0.2),
+      selectedColor: const Color(0xFF4FC3F7).withOpacity(0.2),
       labelStyle: const TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.w500,
@@ -230,7 +230,7 @@ class ThemeProvider extends ChangeNotifier {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: Color(0xFF7C3AED), width: 2),
+        borderSide: const BorderSide(color: Color(0xFF4FC3F7), width: 2),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
     ),
@@ -296,13 +296,14 @@ class ThemeProvider extends ChangeNotifier {
   // Gradient colors for charts and UI elements
   static List<Color> getGradientColors() => gradientColors;
   
-  // Get specific gradient for different chart types
+  // Get specific gradient for different chart types - matching icon colors
   static LinearGradient getPrimaryGradient() => const LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0xFF4C63D2), // Deep Blue
-      Color(0xFF5A67D8), // Purple Blue
+      Color(0xFF1E5AA8), // Deep Blue (left side of icon)
+      Color(0xFF2B7DE9), // Medium Blue
+      Color(0xFF00D4FF), // Bright Cyan (right side of icon)
     ],
   );
 
@@ -310,8 +311,8 @@ class ThemeProvider extends ChangeNotifier {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0xFF667EEA), // Indigo Blue
-      Color(0xFF7C3AED), // Purple
+      Color(0xFF2B7DE9), // Medium Blue
+      Color(0xFF5DDBFF), // Light Cyan
     ],
   );
 
@@ -319,20 +320,20 @@ class ThemeProvider extends ChangeNotifier {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0xFF8B5CF6), // Light Purple
-      Color(0xFF9F7AEA), // Lavender
+      Color(0xFF00D4FF), // Bright Cyan
+      Color(0xFF87E8FF), // Soft Cyan
     ],
   );
 
-  // Background gradient matching the blue theme
+  // Background gradient matching the icon exactly
   static LinearGradient getBackgroundGradient() => const LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0xFF4C63D2), // Deep Blue
-      Color(0xFF5A67D8), // Purple Blue
-      Color(0xFF667EEA), // Indigo Blue
-      Color(0xFF7C3AED), // Purple
+      Color(0xFF1E5AA8), // Deep Blue
+      Color(0xFF2B7DE9), // Medium Blue
+      Color(0xFF00D4FF), // Bright Cyan
+      Color(0xFF5DDBFF), // Light Cyan
     ],
     stops: [0.0, 0.3, 0.7, 1.0],
   );
@@ -342,8 +343,8 @@ class ThemeProvider extends ChangeNotifier {
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      Color(0xFF667EEA), // Indigo Blue
-      Color(0xFF9F7AEA), // Lavender
+      Color(0xFF00D4FF), // Bright Cyan
+      Color(0xFF87E8FF), // Soft Cyan
       Color(0xFFFFFFFF), // White (transparent)
     ],
     stops: [0.0, 0.5, 1.0],
