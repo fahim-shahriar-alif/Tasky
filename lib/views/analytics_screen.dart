@@ -1176,6 +1176,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
   Widget _buildPrayerAnalytics() {
     return Consumer<PrayerProvider>(
       builder: (context, prayerProvider, child) {
+        final weeklyData = prayerProvider.getWeeklyCompletionData();
+        final prayerWiseStats = prayerProvider.getPrayerWiseStats();
+        final streak = prayerProvider.getPrayerStreak();
+        final totalCompleted = prayerProvider.getTotalCompletedInDays();
+        final bestDay = prayerProvider.getBestDayOfWeek();
+
         return SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -1197,10 +1203,34 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
                   Expanded(
                     child: _buildStatCard(
                       context,
-                      'Completion Rate',
-                      '${prayerProvider.getCompletionPercentage().round()}%',
-                      LucideIcons.target,
+                      'Prayer Streak',
+                      '$streak days',
+                      LucideIcons.flame,
                       ThemeProvider.gradientColors[1],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildStatCard(
+                      context,
+                      'This Week',
+                      '$totalCompleted/35',
+                      LucideIcons.calendar,
+                      ThemeProvider.gradientColors[2],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _buildStatCard(
+                      context,
+                      'Best Day',
+                      bestDay,
+                      LucideIcons.star,
+                      ThemeProvider.gradientColors[3],
                     ),
                   ),
                 ],
@@ -1208,22 +1238,47 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
 
               const SizedBox(height: 24),
 
-              // Prayer Completion Chart
-              Card(
+              // Weekly Progress Chart
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: Theme.of(context).brightness == Brightness.dark
+                        ? [
+                            const Color(0xFF2A2A2A),
+                            const Color(0xFF1E1E1E),
+                          ]
+                        : [
+                            Colors.white,
+                            const Color(0xFFFAFAFA),
+                          ],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.black.withOpacity(0.3)
+                          : Colors.black.withOpacity(0.08),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
                 child: Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
                           Icon(
-                            LucideIcons.pieChart,
+                            LucideIcons.trendingUp,
                             color: Theme.of(context).colorScheme.primary,
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Today\'s Prayer Status',
+                            'Weekly Prayer Progress',
                             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -1233,7 +1288,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
                       const SizedBox(height: 16),
                       SizedBox(
                         height: 200,
-                        child: _buildPrayerPieChart(prayerProvider),
+                        child: _buildWeeklyProgressChart(weeklyData),
                       ),
                     ],
                   ),
@@ -1242,43 +1297,35 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
 
               const SizedBox(height: 24),
 
-              // Individual Prayer Status
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            LucideIcons.list,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Prayer Details',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      ...prayerProvider.todayPrayers.map((prayer) => 
-                        _buildPrayerStatusItem(context, prayer)
-                      ).toList(),
-                    ],
+              // Individual Prayer Statistics
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: Theme.of(context).brightness == Brightness.dark
+                        ? [
+                            const Color(0xFF2A2A2A),
+                            const Color(0xFF1E1E1E),
+                          ]
+                        : [
+                            Colors.white,
+                            const Color(0xFFFAFAFA),
+                          ],
                   ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.black.withOpacity(0.3)
+                          : Colors.black.withOpacity(0.08),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Prayer Statistics
-              Card(
                 child: Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -1290,7 +1337,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Prayer Statistics',
+                            'Prayer-wise Statistics (Last 30 Days)',
                             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -1298,7 +1345,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
                         ],
                       ),
                       const SizedBox(height: 16),
-                      _buildPrayerStatsGrid(context, prayerProvider),
+                      _buildPrayerWiseStats(context, prayerWiseStats),
                     ],
                   ),
                 ),
@@ -1307,44 +1354,42 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
               const SizedBox(height: 24),
 
               // Spiritual Progress Card
-              Card(
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: ThemeProvider.getPrimaryGradient(),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      Icon(
-                        LucideIcons.heart,
+              Container(
+                decoration: BoxDecoration(
+                  gradient: ThemeProvider.getPrimaryGradient(),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    Icon(
+                      LucideIcons.heart,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Spiritual Progress',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         color: Colors.white,
-                        size: 32,
+                        fontWeight: FontWeight.bold,
                       ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Spiritual Progress',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _getPrayerMotivationalMessage(prayerProvider.getCompletionPercentage(), streak),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Colors.white.withOpacity(0.9),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _getPrayerMotivationalMessage(prayerProvider.getCompletionPercentage()),
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.white.withOpacity(0.9),
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      LinearProgressIndicator(
-                        value: prayerProvider.getCompletionPercentage() / 100,
-                        backgroundColor: Colors.white.withOpacity(0.3),
-                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    ],
-                  ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    LinearProgressIndicator(
+                      value: prayerProvider.getCompletionPercentage() / 100,
+                      backgroundColor: Colors.white.withOpacity(0.3),
+                      valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -1531,19 +1576,256 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
     );
   }
 
-  String _getPrayerMotivationalMessage(double completionRate) {
+  Widget _buildWeeklyProgressChart(Map<DateTime, double> weeklyData) {
+    if (weeklyData.isEmpty) {
+      return Center(
+        child: Text(
+          'No prayer data available',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+      );
+    }
+
+    // Sort the data by date and create spots with proper indexing
+    final sortedEntries = weeklyData.entries.toList()
+      ..sort((a, b) => a.key.compareTo(b.key));
+    
+    final spots = sortedEntries.asMap().entries.map((entry) {
+      final index = entry.key;
+      final dataEntry = entry.value;
+      return FlSpot(index.toDouble(), dataEntry.value);
+    }).toList();
+
+    return LineChart(
+      LineChartData(
+        gridData: FlGridData(
+          show: true,
+          drawVerticalLine: false,
+          horizontalInterval: 25,
+          getDrawingHorizontalLine: (value) {
+            return FlLine(
+              color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
+              strokeWidth: 1,
+            );
+          },
+        ),
+        titlesData: FlTitlesData(
+          show: true,
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 35,
+              getTitlesWidget: (value, meta) {
+                final index = value.toInt();
+                if (index >= 0 && index < sortedEntries.length) {
+                  final date = sortedEntries[index].key;
+                  final monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                                   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                  final monthName = monthNames[date.month - 1];
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      '$monthName ${date.day}',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  );
+                }
+                return const Text('');
+              },
+            ),
+          ),
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 40,
+              getTitlesWidget: (value, meta) {
+                return Text(
+                  '${value.toInt()}%',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                );
+              },
+            ),
+          ),
+          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        ),
+        borderData: FlBorderData(show: false),
+        minX: 0,
+        maxX: (sortedEntries.length - 1).toDouble(),
+        minY: 0,
+        maxY: 100,
+        lineBarsData: [
+          LineChartBarData(
+            spots: spots,
+            isCurved: true,
+            gradient: LinearGradient(
+              colors: [
+                ThemeProvider.gradientColors[0],
+                ThemeProvider.gradientColors[1],
+              ],
+            ),
+            barWidth: 3,
+            isStrokeCapRound: true,
+            dotData: FlDotData(
+              show: true,
+              getDotPainter: (spot, percent, barData, index) {
+                return FlDotCirclePainter(
+                  radius: 4,
+                  color: ThemeProvider.gradientColors[0],
+                  strokeWidth: 2,
+                  strokeColor: Colors.white,
+                );
+              },
+            ),
+            belowBarData: BarAreaData(
+              show: true,
+              gradient: LinearGradient(
+                colors: [
+                  ThemeProvider.gradientColors[0].withOpacity(0.3),
+                  ThemeProvider.gradientColors[1].withOpacity(0.1),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPrayerWiseStats(BuildContext context, Map<String, Map<String, int>> prayerWiseStats) {
+    if (prayerWiseStats.isEmpty) {
+      return Center(
+        child: Text(
+          'No prayer statistics available',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children: prayerWiseStats.entries.map((entry) {
+        final prayerName = entry.key;
+        final stats = entry.value;
+        final completed = stats['completed'] ?? 0;
+        final total = stats['total'] ?? 0;
+        final percentage = total > 0 ? (completed / total * 100).round() : 0;
+        
+        // Get prayer emoji
+        final prayerIndex = Prayer.prayerNames.indexOf(prayerName);
+        final emoji = prayerIndex >= 0 ? 
+          ['🌅', '☀️', '🌤️', '🌅', '🌙'][prayerIndex] : '🕌';
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            children: [
+              Text(
+                emoji,
+                style: const TextStyle(fontSize: 24),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      prayerName,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '$completed/$total completed',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '$percentage%',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: _getCompletionColor(percentage),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Container(
+                    width: 60,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(2),
+                      color: Theme.of(context).colorScheme.surfaceVariant,
+                    ),
+                    child: FractionallySizedBox(
+                      alignment: Alignment.centerLeft,
+                      widthFactor: percentage / 100,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(2),
+                          color: _getCompletionColor(percentage),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Color _getCompletionColor(int percentage) {
+    if (percentage >= 80) return ThemeProvider.gradientColors[6]; // Teal
+    if (percentage >= 60) return ThemeProvider.gradientColors[4]; // Blue
+    if (percentage >= 40) return ThemeProvider.gradientColors[1]; // Purple
+    return ThemeProvider.gradientColors[0]; // Pink/Red
+  }
+
+  String _getPrayerMotivationalMessage(double completionRate, int streak) {
     if (completionRate == 100) {
-      return 'Excellent! You\'ve completed all prayers today. May Allah accept your worship! 🤲';
+      if (streak > 7) {
+        return 'Amazing! You\'ve maintained a ${streak}-day prayer streak! May Allah continue to bless your dedication! 🤲✨';
+      } else if (streak > 3) {
+        return 'Excellent! You\'ve completed all prayers today and have a ${streak}-day streak! Keep it up! 💪🕌';
+      } else {
+        return 'Perfect! You\'ve completed all prayers today. May Allah accept your worship! 🤲';
+      }
     } else if (completionRate >= 80) {
-      return 'Great progress! You\'re doing well with your prayers. Keep it up! 💪';
+      return 'Great progress! You\'re doing well with your prayers. ${streak > 0 ? 'Current streak: $streak days.' : 'Try to maintain consistency!'} 💪';
     } else if (completionRate >= 60) {
-      return 'Good effort! Try to complete the remaining prayers on time. 🕌';
+      return 'Good effort! Try to complete the remaining prayers on time. ${streak > 0 ? 'You had a $streak-day streak!' : 'Build your prayer habit!'} 🕌';
     } else if (completionRate >= 40) {
-      return 'You can do better! Remember, prayer is the pillar of faith. 📿';
+      return 'You can do better! Remember, prayer is the pillar of faith. ${streak > 0 ? 'You can rebuild your $streak-day streak!' : 'Start building consistency!'} 📿';
     } else if (completionRate > 0) {
-      return 'Every prayer counts! Try to catch up with the remaining prayers. 🌙';
+      return 'Every prayer counts! Try to catch up with the remaining prayers. ${streak > 0 ? 'Remember your $streak-day achievement!' : 'Small steps lead to big changes!'} 🌙';
     } else {
-      return 'Start your spiritual journey! Begin with the next prayer time. ✨';
+      return 'Start your spiritual journey! Begin with the next prayer time. ${streak > 0 ? 'You had a great $streak-day streak before!' : 'Every journey begins with a single step!'} ✨';
     }
   }
 }
