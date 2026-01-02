@@ -70,6 +70,7 @@ class HabitsScreen extends StatelessWidget {
                       DatePickerRow(
                         selectedDate: selectedDate,
                         onDateSelected: habitProvider.setSelectedDate,
+                        datesWithEvents: _getDatesWithHabits(habitProvider),
                       ),
                     ],
                   ),
@@ -180,5 +181,29 @@ class HabitsScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  List<DateTime> _getDatesWithHabits(HabitProvider habitProvider) {
+    final List<DateTime> datesWithHabits = [];
+    final now = DateTime.now();
+    
+    // Add January 2nd, 2026 as a test date to see the border
+    datesWithHabits.add(DateTime(2026, 1, 2));
+    
+    // Check the past 7 days and next 7 days for habit logs
+    for (int i = -7; i <= 7; i++) {
+      final date = now.add(Duration(days: i));
+      final hasHabitsOnDate = habitProvider.habitLogs.any((log) => 
+        log.date.year == date.year &&
+        log.date.month == date.month &&
+        log.date.day == date.day
+      );
+      
+      if (hasHabitsOnDate) {
+        datesWithHabits.add(date);
+      }
+    }
+    
+    return datesWithHabits;
   }
 }

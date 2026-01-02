@@ -5,11 +5,13 @@ import '../providers/theme_provider.dart';
 class DatePickerRow extends StatelessWidget {
   final DateTime selectedDate;
   final Function(DateTime) onDateSelected;
+  final List<DateTime> datesWithEvents;
 
   const DatePickerRow({
     super.key,
     required this.selectedDate,
     required this.onDateSelected,
+    this.datesWithEvents = const [],
   });
 
   @override
@@ -29,6 +31,7 @@ class DatePickerRow extends StatelessWidget {
           final date = startDate.add(Duration(days: index));
           final isSelected = _isSameDay(date, selectedDate);
           final isToday = _isToday(date);
+          final hasEvents = _hasEvents(date);
 
           return Flexible(
             child: GestureDetector(
@@ -52,6 +55,17 @@ class DatePickerRow extends StatelessWidget {
                       ? const Color(0xFF2A2A2A)
                       : const Color(0xFFF0F0F5),
                   borderRadius: BorderRadius.circular(25), // Pill shape
+                  border: hasEvents && !isSelected
+                    ? Border.all(
+                        color: ThemeProvider.gradientColors[0],
+                        width: 3, // Increased width for better visibility
+                      )
+                    : isToday && !isSelected
+                      ? Border.all(
+                          color: ThemeProvider.gradientColors[0].withOpacity(0.5),
+                          width: 2,
+                        )
+                      : null,
                   boxShadow: isSelected ? [
                     BoxShadow(
                       color: ThemeProvider.gradientColors[0].withOpacity(0.3),
@@ -92,17 +106,7 @@ class DatePickerRow extends StatelessWidget {
                         letterSpacing: 0.5,
                       ),
                     ),
-                    if (isToday && !isSelected) ...[
-                      const SizedBox(height: 4),
-                      Container(
-                        width: 6,
-                        height: 6,
-                        decoration: BoxDecoration(
-                          gradient: ThemeProvider.getPrimaryGradient(),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ],
+                    // No dot indicators - only colored borders for events
                   ],
                 ),
               ),
@@ -124,5 +128,9 @@ class DatePickerRow extends StatelessWidget {
     return date.year == now.year &&
         date.month == now.month &&
         date.day == now.day;
+  }
+
+  bool _hasEvents(DateTime date) {
+    return datesWithEvents.any((eventDate) => _isSameDay(date, eventDate));
   }
 }
