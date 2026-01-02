@@ -15,19 +15,21 @@ class PrayerDetailsScreen extends StatelessWidget {
     return Scaffold(
       body: Consumer<PrayerProvider>(
         builder: (context, prayerProvider, child) {
-          if (prayerProvider.isLoading) {
+          // Show loading screen only if there are no prayers and it's loading
+          if (prayerProvider.isLoading && prayerProvider.todayPrayers.isEmpty) {
             return _buildLoadingScreen(context);
           }
 
-          if (prayerProvider.error != null) {
+          if (prayerProvider.error != null && prayerProvider.todayPrayers.isEmpty) {
             return _buildErrorScreen(context, prayerProvider);
           }
 
           final prayers = prayerProvider.todayPrayers;
-          if (prayers.isEmpty) {
+          if (prayers.isEmpty && !prayerProvider.isLoading) {
             return _buildEmptyScreen(context);
           }
 
+          // Always show the content, even during loading if we have prayers
           return _buildPrayerDetailsContent(context, prayerProvider, prayers);
         },
       ),
@@ -237,11 +239,22 @@ class PrayerDetailsScreen extends StatelessWidget {
                     ),
                   ),
                   IconButton(
-                    onPressed: () => prayerProvider.fetchTodayPrayers(),
-                    icon: const Icon(
-                      LucideIcons.refreshCw,
-                      color: Colors.white,
-                    ),
+                    onPressed: prayerProvider.isLoading 
+                        ? null 
+                        : () => prayerProvider.fetchTodayPrayers(),
+                    icon: prayerProvider.isLoading
+                        ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : const Icon(
+                            LucideIcons.refreshCw,
+                            color: Colors.white,
+                          ),
                   ),
                 ],
               ),
@@ -333,37 +346,68 @@ class PrayerDetailsScreen extends StatelessWidget {
                           color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        child: Row(
+                        child: Column(
                           children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Today\'s Progress',
-                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Text(
+                                            'Today\'s Progress',
+                                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          if (prayerProvider.isLoading) ...[
+                                            const SizedBox(width: 8),
+                                            SizedBox(
+                                              width: 12,
+                                              height: 12,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 1.5,
+                                                valueColor: AlwaysStoppedAnimation<Color>(
+                                                  Theme.of(context).colorScheme.primary,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8),
+                                      LinearProgressIndicator(
+                                        value: completionPercentage / 100,
+                                        backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                                        valueColor: AlwaysStoppedAnimation<Color>(
+                                          Theme.of(context).colorScheme.primary,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(height: 8),
-                                  LinearProgressIndicator(
-                                    value: completionPercentage / 100,
-                                    backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      Theme.of(context).colorScheme.primary,
-                                    ),
+                                ),
+                                const SizedBox(width: 16),
+                                Text(
+                                  '$completedCount/5',
+                                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).colorScheme.primary,
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 16),
-                            Text(
-                              '$completedCount/5',
-                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.primary,
+                            if (prayerProvider.isLoading) ...[
+                              const SizedBox(height: 8),
+                              Text(
+                                'Refreshing prayer times...',
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  fontStyle: FontStyle.italic,
+                                ),
                               ),
-                            ),
+                            ],
                           ],
                         ),
                       ),

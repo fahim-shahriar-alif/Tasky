@@ -75,19 +75,30 @@ class PrayerProvider extends ChangeNotifier {
         longitude: _selectedDistrict.longitude,
       );
       
-      // Clear old prayers for today
+      // Get existing prayers for today to preserve completion status
       final today = DateTime.now();
       final todayKey = _getDateKey(today);
       final oldPrayers = _prayerBox?.values
           .where((prayer) => _getDateKey(prayer.date) == todayKey)
           .toList() ?? [];
       
+      // Create a map of existing completion status by prayer name
+      final completionStatus = <String, bool>{};
+      for (final oldPrayer in oldPrayers) {
+        completionStatus[oldPrayer.name] = oldPrayer.isCompleted;
+      }
+      
+      // Clear old prayers for today
       for (final prayer in oldPrayers) {
         await prayer.delete();
       }
 
-      // Save new prayers
+      // Save new prayers with preserved completion status
       for (final prayer in prayers) {
+        // Preserve completion status if it existed
+        if (completionStatus.containsKey(prayer.name)) {
+          prayer.isCompleted = completionStatus[prayer.name]!;
+        }
         await _prayerBox?.add(prayer);
       }
 

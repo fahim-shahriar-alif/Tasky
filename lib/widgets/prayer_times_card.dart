@@ -14,19 +14,21 @@ class PrayerTimesCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<PrayerProvider>(
       builder: (context, prayerProvider, child) {
-        if (prayerProvider.isLoading) {
+        // Show loading card only if there are no prayers and it's loading
+        if (prayerProvider.isLoading && prayerProvider.todayPrayers.isEmpty) {
           return _buildLoadingCard(context);
         }
 
-        if (prayerProvider.error != null) {
+        if (prayerProvider.error != null && prayerProvider.todayPrayers.isEmpty) {
           return _buildErrorCard(context, prayerProvider);
         }
 
         final prayers = prayerProvider.todayPrayers;
-        if (prayers.isEmpty) {
+        if (prayers.isEmpty && !prayerProvider.isLoading) {
           return _buildEmptyCard(context);
         }
 
+        // Always show the compact timeline card, even during loading if we have prayers
         return _buildCompactTimelineCard(context, prayerProvider, prayers);
       },
     );
@@ -155,6 +157,7 @@ class PrayerTimesCard extends StatelessWidget {
     final completedCount = prayerProvider.getCompletedCount();
     final currentPrayerIndex = _getCurrentPrayerIndex(prayers);
     final dayProgress = _calculateDayProgress(prayers);
+    final isLoading = prayerProvider.isLoading;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -209,69 +212,104 @@ class PrayerTimesCard extends StatelessWidget {
                         ),
                       ),
                       const Spacer(),
-                      Text(
-                        '$completedCount/5',
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.primary,
+                      // Show loading indicator or completion count
+                      if (isLoading)
+                        SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                        )
+                      else
+                        Text(
+                          '$completedCount/5',
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
                         ),
-                      ),
                     ],
                   ),
 
                   const SizedBox(height: 12),
 
-                  // Next prayer info (compact)
-                  if (nextPrayer != null) ...[
-                    Row(
-                      children: [
-                        Text(
-                          nextPrayer.emoji,
-                          style: const TextStyle(fontSize: 20),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Next: ${nextPrayer.name} in ${nextPrayer.timeUntilFormatted}',
+                  // Next prayer info (compact) - hide during loading
+                  if (!isLoading) ...[
+                    if (nextPrayer != null) ...[
+                      Row(
+                        children: [
+                          Text(
+                            nextPrayer.emoji,
+                            style: const TextStyle(fontSize: 20),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Next: ${nextPrayer.name} in ${nextPrayer.timeUntilFormatted}',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            DateFormat('h:mm a').format(nextPrayer.time),
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.bold,
                               color: Theme.of(context).colorScheme.primary,
-                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                        ),
-                        Text(
-                          DateFormat('h:mm a').format(nextPrayer.time),
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.primary,
+                        ],
+                      ),
+                    ] else ...[
+                      Row(
+                        children: [
+                          const Text('✨', style: TextStyle(fontSize: 20)),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'All prayers completed! 🤲',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: ThemeProvider.gradientColors[6],
+                              ),
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
+                    ],
+
+                    const SizedBox(height: 12),
+
+                    // Compact Timeline
+                    _buildCompactTimeline(context, prayers, currentPrayerIndex, dayProgress),
+
+                    const SizedBox(height: 8),
                   ] else ...[
-                    Row(
-                      children: [
-                        const Text('✨', style: TextStyle(fontSize: 20)),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'All prayers completed! 🤲',
+                    // Loading state content
+                    const SizedBox(height: 12),
+                    Center(
+                      child: Column(
+                        children: [
+                          Text(
+                            'Refreshing prayer times...',
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: ThemeProvider.gradientColors[6],
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 16),
+                          // Show simplified timeline during loading
+                          if (prayers.isNotEmpty)
+                            _buildCompactTimeline(context, prayers, currentPrayerIndex, dayProgress),
+                        ],
+                      ),
                     ),
+                    const SizedBox(height: 8),
                   ],
-
-                  const SizedBox(height: 12),
-
-                  // Compact Timeline
-                  _buildCompactTimeline(context, prayers, currentPrayerIndex, dayProgress),
-
-                  const SizedBox(height: 8),
 
                   // Tap to view details
                   Center(
@@ -338,14 +376,15 @@ class PrayerTimesCard extends StatelessWidget {
 
                   return Column(
                     children: [
-                      Container(
-                        width: 30,
-                        height: 30,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: isCompleted
-                              ? ThemeProvider.getPrimaryGradient()
-                              : isCurrent
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Container(
+                            width: 30,
+                            height: 30,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: isCurrent
                                   ? LinearGradient(
                                       colors: [
                                         ThemeProvider.gradientColors[1],
@@ -353,41 +392,82 @@ class PrayerTimesCard extends StatelessWidget {
                                       ],
                                     )
                                   : null,
-                          color: !isCompleted && !isCurrent
-                              ? isPassed
-                                  ? Theme.of(context).colorScheme.surfaceVariant
-                                  : Theme.of(context).colorScheme.surface
-                              : null,
-                          border: !isCompleted && !isCurrent
-                              ? Border.all(
-                                  color: Theme.of(context).colorScheme.outline,
+                              color: !isCompleted && !isCurrent
+                                  ? isPassed
+                                      ? Theme.of(context).colorScheme.surfaceVariant
+                                      : Theme.of(context).colorScheme.surface
+                                  : isCompleted
+                                      ? Theme.of(context).colorScheme.surfaceVariant
+                                      : null,
+                              border: (!isCompleted && !isCurrent) || isCompleted
+                                  ? Border.all(
+                                      color: Theme.of(context).colorScheme.outline,
+                                      width: 1.5,
+                                    )
+                                  : null,
+                              boxShadow: isCurrent
+                                  ? [
+                                      BoxShadow(
+                                        color: ThemeProvider.gradientColors[1].withOpacity(0.3),
+                                        blurRadius: 6,
+                                        spreadRadius: 1,
+                                      ),
+                                    ]
+                                  : null,
+                            ),
+                            child: Center(
+                              child: Text(
+                                prayer.emoji,
+                                style: TextStyle(
+                                  fontSize: isCurrent ? 14 : 12,
+                                ),
+                              ),
+                            ),
+                          ),
+                          // Completed prayer overlay (green circle)
+                          if (isCompleted)
+                            Container(
+                              width: 30,
+                              height: 30,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.green.withOpacity(0.3),
+                                border: Border.all(
+                                  color: Colors.green.withOpacity(0.6),
                                   width: 1.5,
-                                )
-                              : null,
-                          boxShadow: isCurrent
-                              ? [
-                                  BoxShadow(
-                                    color: ThemeProvider.gradientColors[1].withOpacity(0.3),
-                                    blurRadius: 6,
-                                    spreadRadius: 1,
-                                  ),
-                                ]
-                              : null,
-                        ),
-                        child: Center(
-                          child: isCompleted
-                              ? const Icon(
+                                ),
+                              ),
+                              child: const Center(
+                                child: Icon(
                                   LucideIcons.check,
-                                  color: Colors.white,
+                                  color: Colors.green,
                                   size: 14,
-                                )
-                              : Text(
+                                ),
+                              ),
+                            ),
+                          // Missed prayer overlay (light red circle)
+                          if (isPassed && !isCompleted && !isCurrent)
+                            Container(
+                              width: 30,
+                              height: 30,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.red.withOpacity(0.3),
+                                border: Border.all(
+                                  color: Colors.red.withOpacity(0.6),
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: Center(
+                                child: Text(
                                   prayer.emoji,
-                                  style: TextStyle(
-                                    fontSize: isCurrent ? 14 : 12,
+                                  style: const TextStyle(
+                                    fontSize: 12,
                                   ),
                                 ),
-                        ),
+                              ),
+                            ),
+                        ],
                       ),
                     ],
                   );
