@@ -10,34 +10,34 @@ class ThemeProvider extends ChangeNotifier {
 
   bool get isDarkMode => _isDarkMode;
 
-  // Modern gradient colors from the provided image
-  static const Color _primaryPink = Color(0xFFFF6B9D); // Soft pink
-  static const Color _primaryPurple = Color(0xFF8B5FBF); // Rich purple
-  static const Color _primaryBlue = Color(0xFF4A90E2); // Bright blue
-  static const Color _primaryCyan = Color(0xFF00D4FF); // Vibrant cyan
-  static const Color _accentTeal = Color(0xFF00C9A7); // Teal
-  static const Color _accentLavender = Color(0xFFB794F6); // Lavender
+  // Modern blue/purple gradient colors from the provided image
+  static const Color _primaryBlue = Color(0xFF4C63D2); // Deep blue from image
+  static const Color _primaryPurple = Color(0xFF5A67D8); // Rich purple-blue
+  static const Color _accentBlue = Color(0xFF667EEA); // Lighter blue
+  static const Color _lightBlue = Color(0xFF9F7AEA); // Light purple-blue
+  static const Color _softBlue = Color(0xFFBBD5FF); // Very light blue
+  static const Color _darkBlue = Color(0xFF3C4FE0); // Dark blue
 
-  // Gradient colors matching the image theme
+  // Gradient colors matching the blue theme from image
   static const List<Color> gradientColors = [
-    Color(0xFFFF6B9D), // Soft Pink
-    Color(0xFF8B5FBF), // Purple
-    Color(0xFFB794F6), // Lavender
+    Color(0xFF4C63D2), // Deep Blue (primary from image)
+    Color(0xFF5A67D8), // Purple Blue
     Color(0xFF667EEA), // Indigo Blue
-    Color(0xFF4A90E2), // Bright Blue
-    Color(0xFF00D4FF), // Cyan
-    Color(0xFF00C9A7), // Teal
-    Color(0xFF36D1DC), // Light Cyan
+    Color(0xFF7C3AED), // Purple
+    Color(0xFF8B5CF6), // Light Purple
+    Color(0xFF9F7AEA), // Lavender
+    Color(0xFFBBD5FF), // Light Blue
+    Color(0xFF3C4FE0), // Dark Blue
   ];
 
   ThemeData get lightTheme => ThemeData(
     useMaterial3: true,
     colorScheme: ColorScheme.fromSeed(
-      seedColor: _primaryPurple,
+      seedColor: _primaryBlue,
       brightness: Brightness.light,
-      primary: _primaryPurple,
-      secondary: _primaryPink,
-      tertiary: _primaryCyan,
+      primary: _primaryBlue,
+      secondary: _accentBlue,
+      tertiary: _lightBlue,
       surface: const Color(0xFFFAFAFA),
       surfaceVariant: const Color(0xFFF5F5F5),
     ),
@@ -73,7 +73,7 @@ class ThemeProvider extends ChangeNotifier {
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
       elevation: 0,
       backgroundColor: Colors.white,
-      selectedItemColor: _primaryPurple,
+      selectedItemColor: _primaryBlue,
       unselectedItemColor: const Color(0xFF9E9E9E),
       type: BottomNavigationBarType.fixed,
       selectedLabelStyle: const TextStyle(
@@ -87,7 +87,7 @@ class ThemeProvider extends ChangeNotifier {
     ),
     chipTheme: ChipThemeData(
       backgroundColor: const Color(0xFFF3F4F6),
-      selectedColor: _primaryPurple.withOpacity(0.1),
+      selectedColor: _primaryBlue.withOpacity(0.1),
       labelStyle: const TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.w500,
@@ -109,7 +109,7 @@ class ThemeProvider extends ChangeNotifier {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: _primaryPurple, width: 2),
+        borderSide: const BorderSide(color: _primaryBlue, width: 2),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
     ),
@@ -153,11 +153,11 @@ class ThemeProvider extends ChangeNotifier {
   ThemeData get darkTheme => ThemeData(
     useMaterial3: true,
     colorScheme: ColorScheme.fromSeed(
-      seedColor: _primaryPurple,
+      seedColor: _primaryBlue,
       brightness: Brightness.dark,
-      primary: const Color(0xFFBA68C8),
-      secondary: const Color(0xFFF48FB1),
-      tertiary: const Color(0xFF4DD0E1),
+      primary: const Color(0xFF7C3AED),
+      secondary: const Color(0xFF8B5CF6),
+      tertiary: const Color(0xFF9F7AEA),
       surface: const Color(0xFF1E1E1E),
       surfaceVariant: const Color(0xFF2A2A2A),
     ),
@@ -193,7 +193,7 @@ class ThemeProvider extends ChangeNotifier {
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
       elevation: 0,
       backgroundColor: Color(0xFF1E1E1E),
-      selectedItemColor: Color(0xFFBA68C8),
+      selectedItemColor: Color(0xFF7C3AED),
       unselectedItemColor: Color(0xFF757575),
       type: BottomNavigationBarType.fixed,
       selectedLabelStyle: TextStyle(
@@ -207,7 +207,7 @@ class ThemeProvider extends ChangeNotifier {
     ),
     chipTheme: ChipThemeData(
       backgroundColor: const Color(0xFF2A2A2A),
-      selectedColor: const Color(0xFFBA68C8).withOpacity(0.2),
+      selectedColor: const Color(0xFF7C3AED).withOpacity(0.2),
       labelStyle: const TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.w500,
@@ -230,7 +230,7 @@ class ThemeProvider extends ChangeNotifier {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: Color(0xFFBA68C8), width: 2),
+        borderSide: const BorderSide(color: Color(0xFF7C3AED), width: 2),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
     ),
@@ -301,8 +301,8 @@ class ThemeProvider extends ChangeNotifier {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0xFFFF6B9D), // Soft Pink
-      Color(0xFF8B5FBF), // Purple
+      Color(0xFF4C63D2), // Deep Blue
+      Color(0xFF5A67D8), // Purple Blue
     ],
   );
 
@@ -310,8 +310,8 @@ class ThemeProvider extends ChangeNotifier {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0xFF4A90E2), // Blue
-      Color(0xFF00D4FF), // Cyan
+      Color(0xFF667EEA), // Indigo Blue
+      Color(0xFF7C3AED), // Purple
     ],
   );
 
@@ -319,20 +319,20 @@ class ThemeProvider extends ChangeNotifier {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0xFF8B5FBF), // Purple
-      Color(0xFFB794F6), // Lavender
+      Color(0xFF8B5CF6), // Light Purple
+      Color(0xFF9F7AEA), // Lavender
     ],
   );
 
-  // Background gradient matching the image
+  // Background gradient matching the blue theme
   static LinearGradient getBackgroundGradient() => const LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0xFFFF6B9D), // Pink
-      Color(0xFF8B5FBF), // Purple
-      Color(0xFF4A90E2), // Blue
-      Color(0xFF00D4FF), // Cyan
+      Color(0xFF4C63D2), // Deep Blue
+      Color(0xFF5A67D8), // Purple Blue
+      Color(0xFF667EEA), // Indigo Blue
+      Color(0xFF7C3AED), // Purple
     ],
     stops: [0.0, 0.3, 0.7, 1.0],
   );
@@ -342,8 +342,8 @@ class ThemeProvider extends ChangeNotifier {
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      Color(0xFF00D4FF), // Cyan
-      Color(0xFF36D1DC), // Light Cyan
+      Color(0xFF667EEA), // Indigo Blue
+      Color(0xFF9F7AEA), // Lavender
       Color(0xFFFFFFFF), // White (transparent)
     ],
     stops: [0.0, 0.5, 1.0],
