@@ -59,6 +59,12 @@ dependencies:
   
   # SVG support
   flutter_svg: ^2.0.10+1
+  
+  # HTTP requests for prayer times API
+  http: ^1.1.0
+  
+  # Location services
+  geolocator: ^10.1.0
 
 dev_dependencies:
   flutter_test:

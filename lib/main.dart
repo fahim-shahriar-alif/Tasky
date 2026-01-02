@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'providers/task_provider.dart';
 import 'providers/habit_provider.dart';
 import 'providers/theme_provider.dart';
+import 'providers/prayer_provider.dart';
 import 'services/storage_service.dart';
 import 'views/home_screen.dart';
 import 'views/splash_screen.dart';
@@ -33,6 +34,7 @@ class _TaskyAppState extends State<TaskyApp> {
         ChangeNotifierProvider(create: (_) => ThemeProvider()..init()),
         ChangeNotifierProvider(create: (_) => TaskProvider()..loadTasks()),
         ChangeNotifierProvider(create: (_) => HabitProvider()..loadHabits()),
+        ChangeNotifierProvider(create: (_) => PrayerProvider()..init()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {

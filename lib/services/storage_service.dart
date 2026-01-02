@@ -1,6 +1,7 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/task.dart';
 import '../models/habit.dart';
+import '../models/prayer.dart';
 
 class StorageService {
   static const String _tasksBoxName = 'tasks';
@@ -27,6 +28,9 @@ class StorageService {
     }
     if (!Hive.isAdapterRegistered(3)) {
       Hive.registerAdapter(HabitLogAdapter());
+    }
+    if (!Hive.isAdapterRegistered(4)) {
+      Hive.registerAdapter(PrayerAdapter());
     }
 
     // Open boxes

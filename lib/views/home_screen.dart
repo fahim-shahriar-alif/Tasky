@@ -32,7 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   final List<String> _titles = [
-    'Calendar',
+    'Home',
     'Tasks',
     'Habits',
     'Analytics',
@@ -77,8 +77,8 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: (index) => setState(() => _currentIndex = index),
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(LucideIcons.calendar),
-            label: 'Calendar',
+            icon: Icon(LucideIcons.home),
+            label: 'Home',
           ),
           BottomNavigationBarItem(
             icon: Icon(LucideIcons.checkSquare),

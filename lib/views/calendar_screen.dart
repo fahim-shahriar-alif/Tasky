@@ -6,8 +6,10 @@ import 'package:intl/intl.dart';
 import '../providers/task_provider.dart';
 import '../providers/habit_provider.dart';
 import '../providers/theme_provider.dart';
+import '../providers/prayer_provider.dart';
 import '../models/task.dart';
 import '../widgets/task_card.dart';
+import '../widgets/prayer_times_card.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -26,12 +28,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
     super.initState();
     _selectedDay = DateTime.now();
     _focusedDay = DateTime.now();
+    
+    // Refresh prayer times when screen loads
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<PrayerProvider>(context, listen: false).refreshIfNeeded();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<TaskProvider, HabitProvider>(
-      builder: (context, taskProvider, habitProvider, child) {
+    return Consumer3<TaskProvider, HabitProvider, PrayerProvider>(
+      builder: (context, taskProvider, habitProvider, prayerProvider, child) {
         final selectedDayTasks = _getTasksForDay(_selectedDay, taskProvider.tasks);
         final selectedDayHabits = habitProvider.habits;
         final selectedDayHabitLogs = habitProvider.habitLogs
@@ -42,6 +49,31 @@ class _CalendarScreenState extends State<CalendarScreen> {
           body: SingleChildScrollView(
             child: Column(
               children: [
+                // Welcome Section
+                Container(
+                  margin: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Assalamu Alaikum! 👋',
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'May your day be blessed and productive',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Prayer Times Card
+                const PrayerTimesCard(),
                 // Calendar Widget with Modern Styling
                 Container(
                   margin: const EdgeInsets.all(16),

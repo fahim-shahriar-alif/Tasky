@@ -4,9 +4,11 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../providers/task_provider.dart';
 import '../providers/habit_provider.dart';
+import '../providers/prayer_provider.dart';
 import '../providers/theme_provider.dart';
 import '../models/task.dart';
 import '../models/task_category.dart';
+import '../models/prayer.dart';
 
 class AnalyticsScreen extends StatefulWidget {
   const AnalyticsScreen({super.key});
@@ -21,7 +23,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
   }
 
   @override
@@ -50,6 +52,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
               icon: Icon(LucideIcons.graduationCap),
               text: 'Classes',
             ),
+            Tab(
+              icon: Icon(LucideIcons.clock),
+              text: 'Prayers',
+            ),
           ],
         ),
         
@@ -61,6 +67,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
               _buildTaskAnalytics(),
               _buildHabitAnalytics(),
               _buildClassAttendanceAnalytics(),
+              _buildPrayerAnalytics(),
             ],
           ),
         ),
@@ -1164,5 +1171,379 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
     
     if (total == 0) return 0;
     return (attended / total * 100).round();
+  }
+
+  Widget _buildPrayerAnalytics() {
+    return Consumer<PrayerProvider>(
+      builder: (context, prayerProvider, child) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Prayer Overview Cards
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildStatCard(
+                      context,
+                      'Today\'s Prayers',
+                      '${prayerProvider.getCompletedCount()}/5',
+                      LucideIcons.clock,
+                      ThemeProvider.gradientColors[0],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _buildStatCard(
+                      context,
+                      'Completion Rate',
+                      '${prayerProvider.getCompletionPercentage().round()}%',
+                      LucideIcons.target,
+                      ThemeProvider.gradientColors[1],
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 24),
+
+              // Prayer Completion Chart
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            LucideIcons.pieChart,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Today\'s Prayer Status',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        height: 200,
+                        child: _buildPrayerPieChart(prayerProvider),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Individual Prayer Status
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            LucideIcons.list,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Prayer Details',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      ...prayerProvider.todayPrayers.map((prayer) => 
+                        _buildPrayerStatusItem(context, prayer)
+                      ).toList(),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Prayer Statistics
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            LucideIcons.barChart3,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Prayer Statistics',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      _buildPrayerStatsGrid(context, prayerProvider),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Spiritual Progress Card
+              Card(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: ThemeProvider.getPrimaryGradient(),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      Icon(
+                        LucideIcons.heart,
+                        color: Colors.white,
+                        size: 32,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Spiritual Progress',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _getPrayerMotivationalMessage(prayerProvider.getCompletionPercentage()),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Colors.white.withOpacity(0.9),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      LinearProgressIndicator(
+                        value: prayerProvider.getCompletionPercentage() / 100,
+                        backgroundColor: Colors.white.withOpacity(0.3),
+                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPrayerPieChart(PrayerProvider prayerProvider) {
+    final completed = prayerProvider.getCompletedCount();
+    final remaining = 5 - completed;
+
+    return PieChart(
+      PieChartData(
+        sectionsSpace: 2,
+        centerSpaceRadius: 60,
+        sections: [
+          PieChartSectionData(
+            color: ThemeProvider.gradientColors[0],
+            value: completed.toDouble(),
+            title: '$completed',
+            radius: 50,
+            titleStyle: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          PieChartSectionData(
+            color: Colors.grey.withOpacity(0.3),
+            value: remaining.toDouble(),
+            title: '$remaining',
+            radius: 50,
+            titleStyle: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPrayerStatusItem(BuildContext context, Prayer prayer) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: prayer.isCompleted 
+          ? ThemeProvider.gradientColors[0].withOpacity(0.1)
+          : Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(12),
+        border: prayer.isCompleted
+          ? Border.all(color: ThemeProvider.gradientColors[0].withOpacity(0.3))
+          : null,
+      ),
+      child: Row(
+        children: [
+          Text(
+            prayer.emoji,
+            style: const TextStyle(fontSize: 24),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${prayer.name} (${prayer.arabicName})',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  'Time: ${prayer.time.hour.toString().padLeft(2, '0')}:${prayer.time.minute.toString().padLeft(2, '0')}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Icon(
+            prayer.isCompleted ? LucideIcons.checkCircle : LucideIcons.circle,
+            color: prayer.isCompleted 
+              ? ThemeProvider.gradientColors[0]
+              : Theme.of(context).colorScheme.onSurfaceVariant,
+            size: 20,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPrayerStatsGrid(BuildContext context, PrayerProvider prayerProvider) {
+    final nextPrayer = prayerProvider.getNextPrayer();
+    final completedCount = prayerProvider.getCompletedCount();
+    final completionRate = prayerProvider.getCompletionPercentage();
+
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _buildPrayerStatItem(
+                context,
+                'Completed Today',
+                '$completedCount',
+                LucideIcons.checkCircle,
+                ThemeProvider.gradientColors[0],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildPrayerStatItem(
+                context,
+                'Remaining',
+                '${5 - completedCount}',
+                LucideIcons.clock,
+                ThemeProvider.gradientColors[1],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _buildPrayerStatItem(
+                context,
+                'Completion Rate',
+                '${completionRate.round()}%',
+                LucideIcons.target,
+                ThemeProvider.gradientColors[2],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildPrayerStatItem(
+                context,
+                'Next Prayer',
+                nextPrayer?.name ?? 'None',
+                LucideIcons.bell,
+                ThemeProvider.gradientColors[3],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPrayerStatItem(BuildContext context, String title, String value, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: color, size: 20),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: color,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            title,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getPrayerMotivationalMessage(double completionRate) {
+    if (completionRate == 100) {
+      return 'Excellent! You\'ve completed all prayers today. May Allah accept your worship! 🤲';
+    } else if (completionRate >= 80) {
+      return 'Great progress! You\'re doing well with your prayers. Keep it up! 💪';
+    } else if (completionRate >= 60) {
+      return 'Good effort! Try to complete the remaining prayers on time. 🕌';
+    } else if (completionRate >= 40) {
+      return 'You can do better! Remember, prayer is the pillar of faith. 📿';
+    } else if (completionRate > 0) {
+      return 'Every prayer counts! Try to catch up with the remaining prayers. 🌙';
+    } else {
+      return 'Start your spiritual journey! Begin with the next prayer time. ✨';
+    }
   }
 }
