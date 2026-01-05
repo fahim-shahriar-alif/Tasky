@@ -38,6 +38,8 @@ class PrayerTimesCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.all(16),
       child: Card(
+        elevation: 8,
+        shadowColor: Theme.of(context).colorScheme.shadow.withOpacity(0.3),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -77,6 +79,8 @@ class PrayerTimesCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.all(16),
       child: Card(
+        elevation: 8,
+        shadowColor: Theme.of(context).colorScheme.shadow.withOpacity(0.3),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -121,6 +125,8 @@ class PrayerTimesCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.all(16),
       child: Card(
+        elevation: 8,
+        shadowColor: Theme.of(context).colorScheme.shadow.withOpacity(0.3),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -172,6 +178,8 @@ class PrayerTimesCard extends StatelessWidget {
         },
         borderRadius: BorderRadius.circular(16),
         child: Card(
+          elevation: 8,
+          shadowColor: Theme.of(context).colorScheme.shadow.withOpacity(0.3),
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
@@ -183,6 +191,20 @@ class PrayerTimesCard extends StatelessWidget {
                   Theme.of(context).cardColor.withOpacity(0.8),
                 ],
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Theme.of(context).colorScheme.shadow.withOpacity(0.15),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                  spreadRadius: 0,
+                ),
+                BoxShadow(
+                  color: Theme.of(context).colorScheme.shadow.withOpacity(0.08),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                  spreadRadius: 0,
+                ),
+              ],
             ),
             child: Padding(
               padding: const EdgeInsets.all(16),

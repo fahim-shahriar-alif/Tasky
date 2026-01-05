@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
+import 'package:intl/intl.dart';
 import '../models/habit.dart';
 import '../services/storage_service.dart';
 
@@ -21,6 +22,7 @@ class HabitProvider extends ChangeNotifier {
 
   // Get completion status for a habit on selected date
   bool isHabitCompletedOnDate(String habitId, DateTime date) {
+    // Allow tracking habits for any date, regardless of when the habit was created
     final log = _habitLogs.firstWhere(
       (log) => log.habitId == habitId && log.isForDate(date),
       orElse: () => HabitLog(
@@ -33,35 +35,182 @@ class HabitProvider extends ChangeNotifier {
     return log.isCompleted;
   }
 
-  // Get habit completion streak
+  // Check if a habit is available for tracking on a given date
+  bool isHabitAvailableForDate(String habitId, DateTime date) {
+    // ALL habits are available for tracking on ANY date
+    // This allows retroactive tracking regardless of when the habit was created
+    final habit = _habits.firstWhere(
+      (h) => h.id == habitId,
+      orElse: () => Habit(id: '', name: '', createdAt: DateTime.now()),
+    );
+    
+    // Return true if the habit exists and is active
+    return habit.id.isNotEmpty && habit.isActive;
+  }
+
+  // Get all habits that should be available for the selected date
+  // This includes ALL habits regardless of when they were created
+  List<Habit> get habitsForSelectedDate {
+    // Return ALL active habits - users should be able to track any habit for any date
+    // This is the key fix: habits are not filtered by creation date
+    return _habits.where((habit) => habit.isActive).toList();
+  }
+
+  // Get all habits available for the selected date
+  List<Habit> get availableHabitsForSelectedDate {
+    // Return all habits - they can be tracked for any date
+    // This allows users to mark habits as completed for previous days,
+    // even if the habit was created after that date
+    return habitsForSelectedDate;
+  }
+
+  // Get habits created before or on a specific date (for future use if needed)
+  List<Habit> getHabitsCreatedByDate(DateTime date) {
+    return _habits.where((habit) => 
+      habit.createdAt.isBefore(date.add(const Duration(days: 1)))
+    ).toList();
+  }
   int getHabitStreak(String habitId) {
+    // Get all completed logs for this habit, sorted by date (newest first)
+    final completedLogs = _habitLogs
+        .where((log) => log.habitId == habitId && log.isCompleted)
+        .toList()
+      ..sort((a, b) => b.date.compareTo(a.date));
+
+    if (completedLogs.isEmpty) return 0;
+
+    // Get today's date (normalized)
+    final today = DateTime.now();
+    final todayNormalized = DateTime(today.year, today.month, today.day);
+    
+    // Create a set of all completed dates for quick lookup
+    final completedDates = <String>{};
+    for (final log in completedLogs) {
+      final logDate = DateTime(log.date.year, log.date.month, log.date.day);
+      completedDates.add('${logDate.year}-${logDate.month.toString().padLeft(2, '0')}-${logDate.day.toString().padLeft(2, '0')}');
+    }
+    
+    // Count consecutive days starting from today and going backwards
+    int streak = 0;
+    DateTime currentDate = todayNormalized;
+    
+    // Check each day going backwards from today
+    while (true) {
+      final dateKey = '${currentDate.year}-${currentDate.month.toString().padLeft(2, '0')}-${currentDate.day.toString().padLeft(2, '0')}';
+      
+      if (completedDates.contains(dateKey)) {
+        // This date is completed, increment streak
+        streak++;
+        // Move to previous day
+        currentDate = currentDate.subtract(const Duration(days: 1));
+      } else {
+        // This date is not completed, streak is broken
+        break;
+      }
+    }
+    
+    return streak;
+  }
+
+  // Test method to verify habit availability
+  void testHabitAvailability() {
+    print('=== TESTING HABIT AVAILABILITY ===');
+    final testDates = [
+      DateTime.now().subtract(const Duration(days: 3)),
+      DateTime.now().subtract(const Duration(days: 2)),
+      DateTime.now().subtract(const Duration(days: 1)),
+      DateTime.now(),
+      DateTime.now().add(const Duration(days: 1)),
+    ];
+    
+    for (final habit in _habits) {
+      print('Habit: ${habit.name}');
+      print('  Created: ${habit.createdAt}');
+      print('  Is Active: ${habit.isActive}');
+      
+      for (final date in testDates) {
+        final available = isHabitAvailableForDate(habit.id, date);
+        final completed = isHabitCompletedOnDate(habit.id, date);
+        print('  Date ${DateFormat('yyyy-MM-dd').format(date)}: Available=$available, Completed=$completed');
+      }
+      print('---');
+    }
+    print('=== END TEST ===');
+  }
+
+  // Debug method to print all habit information
+  void debugHabitInfo() {
+    print('=== HABIT DEBUG INFO ===');
+    print('Selected Date: $_selectedDate');
+    print('Today: ${DateTime.now()}');
+    print('Total Habits: ${_habits.length}');
+    
+    for (final habit in _habits) {
+      print('Habit: ${habit.name} (ID: ${habit.id})');
+      print('  Created: ${habit.createdAt}');
+      print('  Available for selected date: ${isHabitAvailableForDate(habit.id, _selectedDate)}');
+      print('  Completed on selected date: ${isHabitCompletedOnDate(habit.id, _selectedDate)}');
+      
+      final habitLogs = _habitLogs.where((log) => log.habitId == habit.id && log.isCompleted).toList()
+        ..sort((a, b) => b.date.compareTo(a.date));
+      print('  Total completed logs: ${habitLogs.length}');
+      
+      print('  Completed dates:');
+      for (final log in habitLogs) {
+        final logDate = DateTime(log.date.year, log.date.month, log.date.day);
+        final today = DateTime.now();
+        final todayNormalized = DateTime(today.year, today.month, today.day);
+        final daysDiff = todayNormalized.difference(logDate).inDays;
+        print('    ${DateFormat('yyyy-MM-dd').format(logDate)} (${daysDiff} days ago)');
+      }
+      
+      final streakDebug = getHabitStreakDebug(habit.id);
+      print('  Streak calculation: ${streakDebug['calculatedStreak']}');
+      print('---');
+    }
+    print('=== END DEBUG INFO ===');
+  }
+
+  // Debug method to get detailed streak information
+  Map<String, dynamic> getHabitStreakDebug(String habitId) {
     final logs = _habitLogs
         .where((log) => log.habitId == habitId && log.isCompleted)
         .toList()
       ..sort((a, b) => b.date.compareTo(a.date));
 
-    if (logs.isEmpty) return 0;
-
-    int streak = 0;
-    DateTime currentDate = DateTime.now();
+    final today = DateTime.now();
+    final todayDate = DateTime(today.year, today.month, today.day);
     
-    for (final log in logs) {
-      final daysDifference = currentDate.difference(log.date).inDays;
-      if (daysDifference == streak) {
-        streak++;
-        currentDate = log.date;
-      } else {
-        break;
-      }
-    }
-
-    return streak;
+    // Create list of completed dates
+    final completedDates = logs.map((log) {
+      final logDate = DateTime(log.date.year, log.date.month, log.date.day);
+      return {
+        'date': DateFormat('yyyy-MM-dd').format(logDate),
+        'daysDifference': todayDate.difference(logDate).inDays,
+      };
+    }).toList();
+    
+    return {
+      'habitId': habitId,
+      'totalCompletedLogs': logs.length,
+      'completedDates': completedDates,
+      'calculatedStreak': getHabitStreak(habitId),
+      'todayDate': DateFormat('yyyy-MM-dd').format(todayDate),
+    };
   }
 
   // Set selected date
   void setSelectedDate(DateTime date) {
     _selectedDate = DateTime(date.year, date.month, date.day);
+    print('Selected date changed to: $_selectedDate');
+    print('Available habits for this date: ${habitsForSelectedDate.length}');
     notifyListeners();
+  }
+
+  // Force reload all data
+  Future<void> forceReload() async {
+    await loadHabits();
+    debugHabitInfo();
   }
 
   // Load habits and logs from storage
@@ -147,8 +296,11 @@ class HabitProvider extends ChangeNotifier {
 
   // Toggle habit completion for selected date
   Future<void> toggleHabitCompletion(String habitId) async {
+    // Normalize the selected date to avoid time issues
+    final normalizedDate = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
+    
     final existingLogIndex = _habitLogs.indexWhere(
-      (log) => log.habitId == habitId && log.isForDate(_selectedDate),
+      (log) => log.habitId == habitId && log.isForDate(normalizedDate),
     );
 
     HabitLog log;
@@ -161,7 +313,7 @@ class HabitProvider extends ChangeNotifier {
       log = HabitLog(
         id: const Uuid().v4(),
         habitId: habitId,
-        date: _selectedDate,
+        date: normalizedDate,
         isCompleted: true,
       );
       _habitLogs.add(log);
@@ -184,8 +336,11 @@ class HabitProvider extends ChangeNotifier {
 
   // Add note to habit log
   Future<void> addHabitNote(String habitId, String note) async {
+    // Normalize the selected date to avoid time issues
+    final normalizedDate = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
+    
     final existingLogIndex = _habitLogs.indexWhere(
-      (log) => log.habitId == habitId && log.isForDate(_selectedDate),
+      (log) => log.habitId == habitId && log.isForDate(normalizedDate),
     );
 
     HabitLog log;
@@ -196,7 +351,7 @@ class HabitProvider extends ChangeNotifier {
       log = HabitLog(
         id: const Uuid().v4(),
         habitId: habitId,
-        date: _selectedDate,
+        date: normalizedDate,
         notes: note.trim(),
       );
       _habitLogs.add(log);

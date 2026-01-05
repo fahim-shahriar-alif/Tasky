@@ -140,22 +140,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         outsideBuilder: (context, day, focusedDay) {
                           return _buildModernDateCell(context, day, false, false, isOutside: true);
                         },
-                        markerBuilder: (context, day, events) {
-                          if (events.isNotEmpty) {
-                            return Positioned(
-                              bottom: 4,
-                              child: Container(
-                                width: 6,
-                                height: 6,
-                                decoration: BoxDecoration(
-                                  gradient: ThemeProvider.getSecondaryGradient(),
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                            );
-                          }
-                          return null;
-                        },
+                        // Completely remove markerBuilder to disable all markers
                       ),
                       calendarStyle: CalendarStyle(
                         outsideDaysVisible: true,
@@ -171,6 +156,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         defaultDecoration: const BoxDecoration(),
                         outsideDecoration: const BoxDecoration(),
                         markerDecoration: const BoxDecoration(),
+                        // Disable all markers
+                        markersMaxCount: 0,
+                        canMarkersOverflow: false,
                       ),
                       headerStyle: HeaderStyle(
                         formatButtonVisible: true,
@@ -241,6 +229,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 16),
                   child: Card(
+                    elevation: 8,
+                    shadowColor: Theme.of(context).colorScheme.shadow.withOpacity(0.3),
                     child: Padding(
                       padding: const EdgeInsets.all(16),
                       child: Column(

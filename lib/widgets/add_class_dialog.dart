@@ -3,6 +3,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:intl/intl.dart';
 import '../models/task.dart';
 import '../models/task_category.dart';
+import '../providers/theme_provider.dart';
 
 class AddClassDialog extends StatefulWidget {
   final Task? task; // If provided, we're editing
@@ -89,7 +90,7 @@ class _AddClassDialogState extends State<AddClassDialog> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.purple.withOpacity(0.1),
+                gradient: ThemeProvider.getPrimaryGradient(),
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(12),
                   topRight: Radius.circular(12),
@@ -100,7 +101,7 @@ class _AddClassDialogState extends State<AddClassDialog> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.purple,
+                      color: Colors.white.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Text(
@@ -111,9 +112,10 @@ class _AddClassDialogState extends State<AddClassDialog> {
                   const SizedBox(width: 12),
                   Text(
                     isEditing ? 'Edit Class' : 'Add New Class',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: Colors.purple,
+                    style: const TextStyle(
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
                 ],
@@ -193,21 +195,45 @@ class _AddClassDialogState extends State<AddClassDialog> {
                           Expanded(
                             child: InkWell(
                               onTap: _selectStartTime,
-                              child: InputDecorator(
-                                decoration: const InputDecoration(
-                                  labelText: 'Start Time *',
-                                  border: OutlineInputBorder(),
-                                  prefixIcon: Icon(LucideIcons.clock),
+                              child: Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Theme.of(context).colorScheme.outline),
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
-                                child: Text(
-                                  _selectedStartTime != null
-                                      ? _selectedStartTime!.format(context)
-                                      : 'Select start time',
-                                  style: TextStyle(
-                                    color: _selectedStartTime != null
-                                        ? Theme.of(context).colorScheme.onSurface
-                                        : Theme.of(context).colorScheme.onSurfaceVariant,
-                                  ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          LucideIcons.clock,
+                                          size: 16,
+                                          color: Theme.of(context).colorScheme.primary,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          'Start Time',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Theme.of(context).colorScheme.primary,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      _selectedStartTime != null
+                                          ? _selectedStartTime!.format(context)
+                                          : '9:00 AM',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: Theme.of(context).colorScheme.onSurface,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
@@ -216,21 +242,45 @@ class _AddClassDialogState extends State<AddClassDialog> {
                           Expanded(
                             child: InkWell(
                               onTap: _selectEndTime,
-                              child: InputDecorator(
-                                decoration: const InputDecoration(
-                                  labelText: 'End Time *',
-                                  border: OutlineInputBorder(),
-                                  prefixIcon: Icon(LucideIcons.clock3),
+                              child: Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Theme.of(context).colorScheme.outline),
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
-                                child: Text(
-                                  _selectedEndTime != null
-                                      ? _selectedEndTime!.format(context)
-                                      : 'Select end time',
-                                  style: TextStyle(
-                                    color: _selectedEndTime != null
-                                        ? Theme.of(context).colorScheme.onSurface
-                                        : Theme.of(context).colorScheme.onSurfaceVariant,
-                                  ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          LucideIcons.clock3,
+                                          size: 16,
+                                          color: Theme.of(context).colorScheme.primary,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          'End Time',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Theme.of(context).colorScheme.primary,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      _selectedEndTime != null
+                                          ? _selectedEndTime!.format(context)
+                                          : '10:30 AM',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: Theme.of(context).colorScheme.onSurface,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
@@ -243,30 +293,56 @@ class _AddClassDialogState extends State<AddClassDialog> {
                       // Days Selection
                       Text(
                         'Class Days *',
-                        style: Theme.of(context).textTheme.titleSmall,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Wrap(
                         spacing: 8,
+                        runSpacing: 8,
                         children: List.generate(7, (index) {
                           final dayNumber = index + 6; // 6=Saturday, 7=Sunday, 1=Monday, etc.
                           final adjustedDayNumber = dayNumber > 7 ? dayNumber - 7 : dayNumber;
                           final isSelected = _selectedDays.contains(adjustedDayNumber);
-                          return FilterChip(
-                            label: Text(_dayNames[index]),
-                            selected: isSelected,
-                            onSelected: (selected) {
+                          return GestureDetector(
+                            onTap: () {
                               setState(() {
-                                if (selected) {
-                                  _selectedDays.add(adjustedDayNumber);
-                                } else {
+                                if (isSelected) {
                                   _selectedDays.remove(adjustedDayNumber);
+                                } else {
+                                  _selectedDays.add(adjustedDayNumber);
                                 }
                                 _selectedDays.sort();
                               });
                             },
-                            selectedColor: Colors.purple.withOpacity(0.2),
-                            checkmarkColor: Colors.purple,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                              decoration: BoxDecoration(
+                                gradient: isSelected 
+                                    ? ThemeProvider.getSecondaryGradient()
+                                    : null,
+                                color: isSelected 
+                                    ? null 
+                                    : Theme.of(context).colorScheme.surfaceVariant,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: isSelected 
+                                      ? Colors.transparent
+                                      : Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                                ),
+                              ),
+                              child: Text(
+                                _dayNames[index],
+                                style: TextStyle(
+                                  color: isSelected 
+                                      ? Colors.white
+                                      : Theme.of(context).colorScheme.onSurfaceVariant,
+                                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
                           );
                         }),
                       ),
@@ -324,10 +400,12 @@ class _AddClassDialogState extends State<AddClassDialog> {
                       
                       // Reminder Toggle
                       Card(
+                        elevation: 4,
+                        shadowColor: Theme.of(context).colorScheme.shadow.withOpacity(0.2),
                         child: SwitchListTile(
                           title: const Text('Class Reminder'),
                           subtitle: _hasReminder && _reminderDateTime != null
-                              ? Text(DateFormat('MMM d, y at h:mm a').format(_reminderDateTime!))
+                              ? Text('${DateFormat('MMM d, y').format(_reminderDateTime!)} at ${DateFormat('h:mm a').format(_reminderDateTime!)}')
                               : const Text('Get notified before class starts'),
                           value: _hasReminder,
                           onChanged: (value) {
@@ -359,7 +437,7 @@ class _AddClassDialogState extends State<AddClassDialog> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.purple.withOpacity(0.05),
+                color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(12),
                   bottomRight: Radius.circular(12),
@@ -370,15 +448,36 @@ class _AddClassDialogState extends State<AddClassDialog> {
                 children: [
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Cancel'),
+                    child: Text(
+                      'Cancel',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                   ),
                   const SizedBox(width: 12),
-                  FilledButton(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: Colors.purple,
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: ThemeProvider.getPrimaryGradient(),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    onPressed: _saveClass,
-                    child: Text(isEditing ? 'Update Class' : 'Add Class'),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: _saveClass,
+                      child: Text(
+                        isEditing ? 'Update Class' : 'Add Class',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -398,15 +497,15 @@ class _AddClassDialogState extends State<AddClassDialog> {
         
         switch (priority) {
           case TaskPriority.high:
-            priorityColor = Colors.red;
+            priorityColor = const Color(0xFFEF4444); // Red
             priorityIcon = LucideIcons.alertTriangle;
             break;
           case TaskPriority.medium:
-            priorityColor = Colors.orange;
+            priorityColor = ThemeProvider.gradientColors[1]; // Blue
             priorityIcon = LucideIcons.minus;
             break;
           case TaskPriority.low:
-            priorityColor = Colors.green;
+            priorityColor = const Color(0xFF10B981); // Green
             priorityIcon = LucideIcons.arrowDown;
             break;
         }
@@ -418,16 +517,21 @@ class _AddClassDialogState extends State<AddClassDialog> {
               margin: const EdgeInsets.only(right: 8),
               padding: const EdgeInsets.symmetric(vertical: 12),
               decoration: BoxDecoration(
-                color: isSelected 
-                  ? priorityColor.withOpacity(0.1) 
-                  : Colors.transparent,
+                gradient: isSelected 
+                  ? LinearGradient(
+                      colors: [priorityColor.withOpacity(0.1), priorityColor.withOpacity(0.05)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
+                  : null,
+                color: isSelected ? null : Colors.transparent,
                 border: Border.all(
                   color: isSelected 
                     ? priorityColor 
-                    : Theme.of(context).colorScheme.outline,
+                    : Theme.of(context).colorScheme.outline.withOpacity(0.3),
                   width: isSelected ? 2 : 1,
                 ),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
                 children: [

@@ -253,6 +253,8 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
                       
                       // Recurring Task Toggle
                       Card(
+                        elevation: 4,
+                        shadowColor: Theme.of(context).colorScheme.shadow.withOpacity(0.2),
                         child: SwitchListTile(
                           title: const Text('Recurring Task'),
                           subtitle: Text(_isRecurring 
@@ -333,6 +335,8 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
                       
                       // Reminder Toggle
                       Card(
+                        elevation: 4,
+                        shadowColor: Theme.of(context).colorScheme.shadow.withOpacity(0.2),
                         child: SwitchListTile(
                           title: const Text('Set Reminder'),
                           subtitle: _hasReminder && _reminderDateTime != null

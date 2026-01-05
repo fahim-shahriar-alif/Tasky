@@ -17,7 +17,7 @@ class HabitsScreen extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final habits = habitProvider.habits;
+        final habits = habitProvider.habitsForSelectedDate;
         final selectedDate = habitProvider.selectedDate;
         final completedToday = habits.where((habit) => 
           habitProvider.isHabitCompletedOnDate(habit.id, selectedDate)).length;
@@ -28,6 +28,8 @@ class HabitsScreen extends StatelessWidget {
             Container(
               margin: const EdgeInsets.all(16),
               child: Card(
+                elevation: 8,
+                shadowColor: Theme.of(context).colorScheme.shadow.withOpacity(0.3),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
@@ -55,6 +57,17 @@ class HabitsScreen extends StatelessWidget {
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
+                      if (selectedDate.isBefore(DateTime.now().subtract(const Duration(days: 1))))
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            'You can track habits for past dates',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        ),
                       const SizedBox(height: 16),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -64,6 +77,21 @@ class HabitsScreen extends StatelessWidget {
                           _buildStatColumn(context, 'Completion Rate', 
                             habits.isEmpty ? '0%' : '${((completedToday / habits.length) * 100).round()}%', 
                             Colors.orange),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      // Debug button
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () => habitProvider.debugHabitInfo(),
+                            child: const Text('Debug Info'),
+                          ),
+                          ElevatedButton(
+                            onPressed: () => habitProvider.testHabitAvailability(),
+                            child: const Text('Test Availability'),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 16),
@@ -123,7 +151,12 @@ class HabitsScreen extends StatelessWidget {
                           isCompleted: isCompleted,
                           streak: streak,
                           selectedDate: selectedDate,
-                          onToggle: () => habitProvider.toggleHabitCompletion(habit.id),
+                          onToggle: () {
+                            habitProvider.toggleHabitCompletion(habit.id);
+                            // Debug print to help troubleshoot
+                            print('Habit: ${habit.name}, Streak: $streak, Selected Date: $selectedDate');
+                            habitProvider.debugHabitInfo();
+                          },
                           onDelete: () => _showDeleteConfirmation(context, habit, habitProvider),
                         );
                       },
@@ -187,16 +220,17 @@ class HabitsScreen extends StatelessWidget {
     final List<DateTime> datesWithHabits = [];
     final now = DateTime.now();
     
-    // Check the past 7 days and next 7 days for habit logs
-    for (int i = -7; i <= 7; i++) {
+    // Check the past 30 days and next 7 days for completed habit logs
+    for (int i = -30; i <= 7; i++) {
       final date = now.add(Duration(days: i));
-      final hasHabitsOnDate = habitProvider.habitLogs.any((log) => 
+      final hasCompletedHabitsOnDate = habitProvider.habitLogs.any((log) => 
+        log.isCompleted &&
         log.date.year == date.year &&
         log.date.month == date.month &&
         log.date.day == date.day
       );
       
-      if (hasHabitsOnDate) {
+      if (hasCompletedHabitsOnDate) {
         datesWithHabits.add(date);
       }
     }

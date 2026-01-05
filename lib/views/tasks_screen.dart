@@ -50,6 +50,8 @@ class _TasksScreenState extends State<TasksScreen> with TickerProviderStateMixin
             Container(
               margin: const EdgeInsets.all(16),
               child: Card(
+                elevation: 8,
+                shadowColor: Theme.of(context).colorScheme.shadow.withOpacity(0.3),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(

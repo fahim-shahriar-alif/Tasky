@@ -21,8 +21,11 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   int _currentIndex = 0;
+  bool _isExpanded = false;
+  late AnimationController _animationController;
+  late Animation<double> _animation;
 
   final List<Widget> _screens = [
     const CalendarScreen(),
@@ -37,6 +40,25 @@ class _HomeScreenState extends State<HomeScreen> {
     'Habits',
     'Analytics',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _animation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    );
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -99,7 +121,113 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget? _buildFloatingActionButton() {
-    if (_currentIndex == 1) {
+    if (_currentIndex == 0) {
+      // Home screen - show expandable speed dial
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          // Task option
+          AnimatedBuilder(
+            animation: _animation,
+            builder: (context, child) {
+              return Transform.scale(
+                scale: _animation.value,
+                child: Opacity(
+                  opacity: _animation.value,
+                  child: _isExpanded
+                      ? Container(
+                          margin: const EdgeInsets.only(bottom: 16),
+                          child: _buildSpeedDialOption(
+                            'Task',
+                            LucideIcons.checkSquare,
+                            ThemeProvider.gradientColors[4],
+                            () {
+                              _toggleExpanded();
+                              _showAddTaskDialog();
+                            },
+                          ),
+                        )
+                      : const SizedBox.shrink(),
+                ),
+              );
+            },
+          ),
+          
+          // Class option
+          AnimatedBuilder(
+            animation: _animation,
+            builder: (context, child) {
+              return Transform.scale(
+                scale: _animation.value,
+                child: Opacity(
+                  opacity: _animation.value,
+                  child: _isExpanded
+                      ? Container(
+                          margin: const EdgeInsets.only(bottom: 16),
+                          child: _buildSpeedDialOption(
+                            'Class',
+                            LucideIcons.graduationCap,
+                            ThemeProvider.gradientColors[1],
+                            () {
+                              _toggleExpanded();
+                              _showAddClassDialog();
+                            },
+                          ),
+                        )
+                      : const SizedBox.shrink(),
+                ),
+              );
+            },
+          ),
+          
+          // Habit option
+          AnimatedBuilder(
+            animation: _animation,
+            builder: (context, child) {
+              return Transform.scale(
+                scale: _animation.value,
+                child: Opacity(
+                  opacity: _animation.value,
+                  child: _isExpanded
+                      ? Container(
+                          margin: const EdgeInsets.only(bottom: 16),
+                          child: _buildSpeedDialOption(
+                            'Habit',
+                            LucideIcons.target,
+                            ThemeProvider.gradientColors[6],
+                            () {
+                              _toggleExpanded();
+                              _showAddHabitDialog();
+                            },
+                          ),
+                        )
+                      : const SizedBox.shrink(),
+                ),
+              );
+            },
+          ),
+          
+          // Main FAB
+          FloatingActionButton(
+            heroTag: "main_fab",
+            onPressed: _toggleExpanded,
+            backgroundColor: _isExpanded 
+                ? ThemeProvider.gradientColors[1] 
+                : ThemeProvider.gradientColors[0],
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              child: Icon(
+                _isExpanded ? LucideIcons.x : LucideIcons.plus,
+                key: ValueKey<bool>(_isExpanded),
+                color: Colors.white,
+                size: 24,
+              ),
+            ),
+          ),
+        ],
+      );
+    } else if (_currentIndex == 1) {
       // Tasks screen - show two buttons for Task and Class with modern design
       return Column(
         mainAxisSize: MainAxisSize.min,
@@ -177,6 +305,69 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
     return null;
+  }
+
+  Widget _buildSpeedDialOption(String label, IconData icon, Color color, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [color, color.withOpacity(0.8)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.4),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                icon,
+                color: Colors.white,
+                size: 18,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _toggleExpanded() {
+    setState(() {
+      _isExpanded = !_isExpanded;
+    });
+    
+    if (_isExpanded) {
+      _animationController.forward();
+    } else {
+      _animationController.reverse();
+    }
   }
 
   void _showAddClassDialog() {

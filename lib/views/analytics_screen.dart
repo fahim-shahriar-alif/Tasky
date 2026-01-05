@@ -356,6 +356,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
 
               // Habit Streaks
               Card(
+                elevation: 8,
+                shadowColor: Theme.of(context).colorScheme.shadow.withOpacity(0.3),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
@@ -405,6 +407,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
 
               // Weekly Progress
               Card(
+                elevation: 8,
+                shadowColor: Theme.of(context).colorScheme.shadow.withOpacity(0.3),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
@@ -530,11 +534,16 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
         ),
         boxShadow: [
           BoxShadow(
-            color: isDark 
-                ? Colors.black.withOpacity(0.3)
-                : Colors.black.withOpacity(0.08),
+            color: Theme.of(context).colorScheme.shadow.withOpacity(0.15),
             blurRadius: 12,
             offset: const Offset(0, 4),
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: Theme.of(context).colorScheme.shadow.withOpacity(0.08),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+            spreadRadius: 0,
           ),
         ],
       ),
@@ -616,11 +625,16 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
         ),
         boxShadow: [
           BoxShadow(
-            color: isDark 
-                ? Colors.black.withOpacity(0.3)
-                : Colors.black.withOpacity(0.08),
+            color: Theme.of(context).colorScheme.shadow.withOpacity(0.15),
             blurRadius: 12,
             offset: const Offset(0, 4),
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: Theme.of(context).colorScheme.shadow.withOpacity(0.08),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+            spreadRadius: 0,
           ),
         ],
       ),
@@ -899,6 +913,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
 
               // Attendance Overview Pie Chart
               Card(
+                elevation: 8,
+                shadowColor: Theme.of(context).colorScheme.shadow.withOpacity(0.3),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
@@ -933,6 +949,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
 
               // Individual Class Attendance
               Card(
+                elevation: 8,
+                shadowColor: Theme.of(context).colorScheme.shadow.withOpacity(0.3),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
