@@ -83,11 +83,15 @@ class HabitProvider extends ChangeNotifier {
     final today = DateTime.now();
     final todayNormalized = DateTime(today.year, today.month, today.day);
     
-    // Create a set of all completed dates for quick lookup
+    // Create a set of all completed dates for quick lookup (only past and today)
     final completedDates = <String>{};
     for (final log in completedLogs) {
       final logDate = DateTime(log.date.year, log.date.month, log.date.day);
-      completedDates.add('${logDate.year}-${logDate.month.toString().padLeft(2, '0')}-${logDate.day.toString().padLeft(2, '0')}');
+      
+      // Only include dates that are today or in the past
+      if (logDate.isBefore(todayNormalized) || logDate.isAtSameMomentAs(todayNormalized)) {
+        completedDates.add('${logDate.year}-${logDate.month.toString().padLeft(2, '0')}-${logDate.day.toString().padLeft(2, '0')}');
+      }
     }
     
     // Count consecutive days starting from today and going backwards
@@ -142,7 +146,9 @@ class HabitProvider extends ChangeNotifier {
   void debugHabitInfo() {
     print('=== HABIT DEBUG INFO ===');
     print('Selected Date: $_selectedDate');
-    print('Today: ${DateTime.now()}');
+    final today = DateTime.now();
+    final todayNormalized = DateTime(today.year, today.month, today.day);
+    print('Today: $today (normalized: $todayNormalized)');
     print('Total Habits: ${_habits.length}');
     
     for (final habit in _habits) {
@@ -155,13 +161,13 @@ class HabitProvider extends ChangeNotifier {
         ..sort((a, b) => b.date.compareTo(a.date));
       print('  Total completed logs: ${habitLogs.length}');
       
-      print('  Completed dates:');
+      print('  Completed dates (valid for streak):');
       for (final log in habitLogs) {
         final logDate = DateTime(log.date.year, log.date.month, log.date.day);
-        final today = DateTime.now();
-        final todayNormalized = DateTime(today.year, today.month, today.day);
         final daysDiff = todayNormalized.difference(logDate).inDays;
-        print('    ${DateFormat('yyyy-MM-dd').format(logDate)} (${daysDiff} days ago)');
+        final isValidForStreak = logDate.isBefore(todayNormalized) || logDate.isAtSameMomentAs(todayNormalized);
+        final status = isValidForStreak ? '✅' : '❌ FUTURE';
+        print('    ${DateFormat('yyyy-MM-dd').format(logDate)} (${daysDiff} days ago) $status');
       }
       
       final streakDebug = getHabitStreakDebug(habit.id);
