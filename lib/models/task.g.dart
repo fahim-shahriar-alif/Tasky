@@ -36,13 +36,14 @@ class TaskAdapter extends TypeAdapter<Task> {
       duration: fields[17] as double?,
     )
       ..dueTimeString = fields[8] as String?
-      ..endTimeString = fields[18] as String?;
+      ..endTimeString = fields[18] as String?
+      ..attendanceDates = (fields[19] as List?)?.cast<String>();
   }
 
   @override
   void write(BinaryWriter writer, Task obj) {
     writer
-      ..writeByte(19)
+      ..writeByte(20)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -80,7 +81,9 @@ class TaskAdapter extends TypeAdapter<Task> {
       ..writeByte(17)
       ..write(obj.duration)
       ..writeByte(18)
-      ..write(obj.endTimeString);
+      ..write(obj.endTimeString)
+      ..writeByte(19)
+      ..write(obj.attendanceDates);
   }
 
   @override

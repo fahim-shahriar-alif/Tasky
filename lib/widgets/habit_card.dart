@@ -6,7 +6,6 @@ import '../providers/theme_provider.dart';
 class HabitCard extends StatelessWidget {
   final Habit habit;
   final bool isCompleted;
-  final int streak;
   final DateTime selectedDate;
   final VoidCallback onToggle;
   final VoidCallback onDelete;
@@ -15,7 +14,6 @@ class HabitCard extends StatelessWidget {
     super.key,
     required this.habit,
     required this.isCompleted,
-    required this.streak,
     required this.selectedDate,
     required this.onToggle,
     required this.onDelete,
@@ -131,83 +129,41 @@ class HabitCard extends StatelessWidget {
                   ],
                   const SizedBox(height: 12),
                   
-                  // Status chips
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 4,
-                    children: [
-                      if (streak > 0)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                const Color(0xFFFF6B9D).withOpacity(0.2), // Soft Pink
-                                const Color(0xFF8B5FBF).withOpacity(0.1), // Purple
-                              ],
+                  // Status chip - only show "Today" if it's today
+                  if (isToday)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        gradient: ThemeProvider.getSecondaryGradient(),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF2196F3).withOpacity(0.2),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            LucideIcons.calendar,
+                            size: 14,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(width: 4),
+                          const Text(
+                            'Today',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
                             ),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: const Color(0xFFFF6B9D).withOpacity(0.3),
-                              width: 1.5,
-                            ),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                LucideIcons.flame,
-                                size: 14,
-                                color: Color(0xFFFF6B9D),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '$streak day${streak == 1 ? '' : 's'}',
-                                style: const TextStyle(
-                                  color: Color(0xFFFF6B9D),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      if (isToday)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            gradient: ThemeProvider.getSecondaryGradient(),
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF2196F3).withOpacity(0.2),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                LucideIcons.calendar,
-                                size: 14,
-                                color: Colors.white,
-                              ),
-                              const SizedBox(width: 4),
-                              const Text(
-                                'Today',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                    ],
-                  ),
+                        ],
+                      ),
+                    ),
                 ],
               ),
             ),

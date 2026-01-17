@@ -9,6 +9,7 @@ class ClassCard extends StatelessWidget {
   final VoidCallback onToggleAttendance;
   final VoidCallback onDelete;
   final VoidCallback onEdit;
+  final DateTime? selectedDate; // Add selected date parameter
 
   const ClassCard({
     super.key,
@@ -16,12 +17,51 @@ class ClassCard extends StatelessWidget {
     required this.onToggleAttendance,
     required this.onDelete,
     required this.onEdit,
+    this.selectedDate,
   });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    // Determine attendance status based on selected date or today
+    final checkDate = selectedDate ?? DateTime.now();
+    final isAttended = task.isAttendedOnDate(checkDate);
+    
+    // Check if class should occur on this date - CRITICAL CHECK
+    final shouldOccurToday = task.shouldOccurOnDate(checkDate);
+    
+    // Check if the selected date is in the future
+    final today = DateTime.now();
+    final isFutureDate = checkDate.isAfter(DateTime(today.year, today.month, today.day));
+    final isToday = checkDate.year == today.year && checkDate.month == today.month && checkDate.day == today.day;
+    
+    // Check if current time allows attendance marking for today's class
+    bool canMarkAttendanceNow = true;
+    String timeRestrictionMessage = '';
+    
+    if (isToday && task.dueTime != null) {
+      final now = DateTime.now();
+      final classTime = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        task.dueTime!.hour,
+        task.dueTime!.minute,
+      );
+      
+      // Allow attendance marking from class start time onwards
+      if (now.isBefore(classTime)) {
+        canMarkAttendanceNow = false;
+        timeRestrictionMessage = 'Available at ${_formatTimeOfDay(task.dueTime!)}';
+      }
+    }
+    
+    // If class shouldn't occur today, don't render the card at all
+    if (!shouldOccurToday) {
+      return const SizedBox.shrink();
+    }
     
     Color priorityColor;
     switch (task.priority) {
@@ -362,66 +402,132 @@ class ClassCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: task.isCompleted 
-                        ? LinearGradient(
-                            colors: [
-                              const Color(0xFF00C9A7), // Teal
-                              const Color(0xFF36D1DC), // Light Cyan
-                            ],
-                          )
-                        : LinearGradient(
-                            colors: [
-                              Colors.grey.shade400,
-                              Colors.grey.shade500,
-                            ],
-                          ),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: (task.isCompleted ? const Color(0xFF00C9A7) : Colors.grey)
-                            .withOpacity(0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: onToggleAttendance,
+                if (isFutureDate)
+                  // Show disabled button for future dates
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
                       borderRadius: BorderRadius.circular(16),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              task.isCompleted ? LucideIcons.checkCircle : LucideIcons.circle,
-                              size: 18,
-                              color: Colors.white,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          LucideIcons.clock,
+                          size: 18,
+                          color: Colors.grey.shade600,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Future date',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                else if (isToday && !canMarkAttendanceNow)
+                  // Show time restriction for today's class before class time
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.shade100,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.orange.shade300),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          LucideIcons.clock,
+                          size: 18,
+                          color: Colors.orange.shade700,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          timeRestrictionMessage,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.orange.shade700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  // Show attendance button for valid times
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: isAttended 
+                          ? LinearGradient(
+                              colors: [
+                                const Color(0xFF00C9A7), // Teal
+                                const Color(0xFF36D1DC), // Light Cyan
+                              ],
+                            )
+                          : LinearGradient(
+                              colors: [
+                                Colors.grey.shade400,
+                                Colors.grey.shade500,
+                              ],
                             ),
-                            const SizedBox(width: 8),
-                            Text(
-                              task.isCompleted ? 'Attended' : 'Mark Attendance',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: (isAttended ? const Color(0xFF00C9A7) : Colors.grey)
+                              .withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: onToggleAttendance,
+                        borderRadius: BorderRadius.circular(16),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                isAttended ? LucideIcons.checkCircle : LucideIcons.circle,
+                                size: 18,
                                 color: Colors.white,
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 8),
+                              Text(
+                                isAttended ? 'Attended' : 'Mark Attendance',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
               ],
             ),
           ],
         ),
       ),
     );
+  }
+
+  String _formatTimeOfDay(TimeOfDay time) {
+    final hour = time.hour == 0 ? 12 : (time.hour > 12 ? time.hour - 12 : time.hour);
+    final period = time.hour < 12 ? 'AM' : 'PM';
+    final minute = time.minute.toString().padLeft(2, '0');
+    return '$hour:$minute $period';
   }
 }

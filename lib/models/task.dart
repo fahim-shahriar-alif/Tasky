@@ -73,6 +73,9 @@ class Task extends HiveObject {
   @HiveField(18)
   String? endTimeString; // Store as "HH:MM" format
 
+  @HiveField(19)
+  List<String>? attendanceDates; // Store dates when attendance was marked (YYYY-MM-DD format)
+
   Task({
     required this.id,
     required this.title,
@@ -233,7 +236,7 @@ class Task extends HiveObject {
     }
 
     // Check if day of week matches
-    final dayOfWeek = date.weekday; // 1=Monday, 7=Sunday
+    final dayOfWeek = date.weekday; // 1=Monday, 2=Tuesday, ..., 7=Sunday
     return recurringDays?.contains(dayOfWeek) ?? false;
   }
 
@@ -264,6 +267,43 @@ class Task extends HiveObject {
     final minute = time.minute.toString().padLeft(2, '0');
     
     return '$hour:$minute $period';
+  }
+
+  // Check if attendance is marked for a specific date
+  bool isAttendedOnDate(DateTime date) {
+    if (attendanceDates == null) return false;
+    final dateString = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    return attendanceDates!.contains(dateString);
+  }
+
+  // Mark attendance for a specific date
+  void markAttendanceForDate(DateTime date, bool attended) {
+    attendanceDates ??= [];
+    final dateString = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    
+    if (attended) {
+      if (!attendanceDates!.contains(dateString)) {
+        attendanceDates!.add(dateString);
+      }
+    } else {
+      attendanceDates!.remove(dateString);
+    }
+  }
+
+  // Get total attendance count
+  int get totalAttendanceCount => attendanceDates?.length ?? 0;
+
+  // Get attendance dates as DateTime objects
+  List<DateTime> get attendanceDatesList {
+    if (attendanceDates == null) return [];
+    return attendanceDates!.map((dateString) {
+      final parts = dateString.split('-');
+      return DateTime(
+        int.parse(parts[0]),
+        int.parse(parts[1]),
+        int.parse(parts[2]),
+      );
+    }).toList();
   }
 
   bool _isSameDay(DateTime date1, DateTime date2) {

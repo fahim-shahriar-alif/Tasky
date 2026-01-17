@@ -9,6 +9,8 @@ import '../providers/theme_provider.dart';
 import '../providers/prayer_provider.dart';
 import '../models/task.dart';
 import '../widgets/task_card.dart';
+import '../widgets/class_card.dart';
+import '../models/task_category.dart';
 import '../widgets/prayer_times_card.dart';
 
 class CalendarScreen extends StatefulWidget {
@@ -322,12 +324,26 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           itemCount: selectedDayTasks.length,
                           itemBuilder: (context, index) {
                             final task = selectedDayTasks[index];
-                            return TaskCard(
-                              task: task,
-                              onToggle: () => taskProvider.toggleTaskCompletion(task.id),
-                              onDelete: () => _showDeleteConfirmation(context, task, taskProvider),
-                              onEdit: () => _showEditTaskDialog(context, task, taskProvider),
-                            );
+                            
+                            // Check if this is a class task
+                            final isClass = task.category == TaskCategory.classCategory && task.isRecurring;
+                            
+                            if (isClass) {
+                              return ClassCard(
+                                task: task,
+                                selectedDate: _selectedDay,
+                                onToggleAttendance: () => taskProvider.toggleTaskCompletionForDate(task.id, _selectedDay),
+                                onDelete: () => _showDeleteConfirmation(context, task, taskProvider),
+                                onEdit: () => _showEditTaskDialog(context, task, taskProvider),
+                              );
+                            } else {
+                              return TaskCard(
+                                task: task,
+                                onToggle: () => taskProvider.toggleTaskCompletion(task.id),
+                                onDelete: () => _showDeleteConfirmation(context, task, taskProvider),
+                                onEdit: () => _showEditTaskDialog(context, task, taskProvider),
+                              );
+                            }
                           },
                         ),
                 ),

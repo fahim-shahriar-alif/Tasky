@@ -79,21 +79,6 @@ class HabitsScreen extends StatelessWidget {
                             Colors.orange),
                         ],
                       ),
-                      const SizedBox(height: 8),
-                      // Debug button
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          ElevatedButton(
-                            onPressed: () => habitProvider.debugHabitInfo(),
-                            child: const Text('Debug Info'),
-                          ),
-                          ElevatedButton(
-                            onPressed: () => habitProvider.testHabitAvailability(),
-                            child: const Text('Test Availability'),
-                          ),
-                        ],
-                      ),
                       const SizedBox(height: 16),
                       DatePickerRow(
                         selectedDate: selectedDate,
@@ -144,19 +129,12 @@ class HabitsScreen extends StatelessWidget {
                           habit.id,
                           selectedDate,
                         );
-                        final streak = habitProvider.getHabitStreak(habit.id);
 
                         return HabitCard(
                           habit: habit,
                           isCompleted: isCompleted,
-                          streak: streak,
                           selectedDate: selectedDate,
-                          onToggle: () {
-                            habitProvider.toggleHabitCompletion(habit.id);
-                            // Debug print to help troubleshoot
-                            print('Habit: ${habit.name}, Streak: $streak, Selected Date: $selectedDate');
-                            habitProvider.debugHabitInfo();
-                          },
+                          onToggle: () => habitProvider.toggleHabitCompletion(habit.id),
                           onDelete: () => _showDeleteConfirmation(context, habit, habitProvider),
                         );
                       },

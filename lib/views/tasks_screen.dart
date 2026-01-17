@@ -217,7 +217,8 @@ class _TasksScreenState extends State<TasksScreen> with TickerProviderStateMixin
         if (isClass) {
           return ClassCard(
             task: task,
-            onToggleAttendance: () => taskProvider.toggleTaskCompletion(task.id),
+            selectedDate: DateTime.now(), // For tasks screen, always use today
+            onToggleAttendance: () => taskProvider.toggleTaskCompletionForDate(task.id, DateTime.now()),
             onDelete: () => _showDeleteConfirmation(context, task, taskProvider),
             onEdit: () => _showEditTaskDialog(context, task, taskProvider),
           );

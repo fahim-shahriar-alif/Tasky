@@ -354,57 +354,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
 
               const SizedBox(height: 24),
 
-              // Habit Streaks
-              Card(
-                elevation: 8,
-                shadowColor: Theme.of(context).colorScheme.shadow.withOpacity(0.3),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Habit Streaks',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      habits.isEmpty
-                          ? Center(
-                              child: Text(
-                                'No habits to display',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            )
-                          : Column(
-                              children: habits.map((habit) {
-                                final streak = habitProvider.getHabitStreak(habit.id);
-                                return ListTile(
-                                  leading: Icon(
-                                    LucideIcons.flame,
-                                    color: streak > 0 ? Colors.orange : Colors.grey,
-                                  ),
-                                  title: Text(habit.name),
-                                  trailing: Text(
-                                    '$streak days',
-                                    style: TextStyle(
-                                      color: streak > 0 ? Colors.orange : Colors.grey,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
-                            ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
               // Weekly Progress
               Card(
                 elevation: 8,
@@ -965,11 +914,23 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
                       const SizedBox(height: 16),
                       ...classGroups.entries.map((entry) {
                         final className = entry.key;
-                        final classInstances = entry.value;
-                        final attended = classInstances.where((task) => task.isCompleted).length;
-                        final missed = classInstances.where((task) => !task.isCompleted && _isClassInPast(task)).length;
-                        final total = attended + missed;
-                        final attendanceRate = total > 0 ? (attended / total * 100).round() : 0;
+                        final classTask = entry.value.first; // Get the class task (all instances are the same class)
+                        
+                        // Calculate attendance for this specific class
+                        final today = DateTime.now();
+                        final startDate = classTask.createdAt;
+                        int totalPossible = 0;
+                        
+                        // Count how many times this class should have occurred up to today
+                        for (DateTime date = startDate; date.isBefore(today) || _isSameDay(date, today); date = date.add(const Duration(days: 1))) {
+                          if (classTask.shouldOccurOnDate(date)) {
+                            totalPossible++;
+                          }
+                        }
+                        
+                        final attended = classTask.totalAttendanceCount;
+                        final missed = totalPossible - attended;
+                        final attendanceRate = totalPossible > 0 ? (attended / totalPossible * 100).round() : 0;
 
                         return Container(
                           margin: const EdgeInsets.only(bottom: 16),
@@ -990,7 +951,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
-                                          'Instructor: ${classInstances.first.instructor ?? 'N/A'}',
+                                          'Instructor: ${classTask.instructor ?? 'N/A'}',
                                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                             color: Theme.of(context).colorScheme.onSurfaceVariant,
                                           ),
@@ -1029,7 +990,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
                               ),
                               const SizedBox(height: 8),
                               LinearProgressIndicator(
-                                value: total > 0 ? attended / total : 0,
+                                value: totalPossible > 0 ? attended / totalPossible : 0,
                                 backgroundColor: ThemeProvider.gradientColors[0].withOpacity(0.2),
                                 valueColor: AlwaysStoppedAnimation<Color>(ThemeProvider.gradientColors[7]),
                               ),
@@ -1049,10 +1010,32 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
   }
 
   Widget _buildAttendancePieChart(List<Task> classTasks) {
-    final attended = classTasks.where((task) => task.isCompleted).length;
-    final missed = classTasks.where((task) => !task.isCompleted && _isClassInPast(task)).length;
+    // Calculate total attendance across all classes
+    int totalAttended = 0;
+    int totalMissed = 0;
+    
+    for (final task in classTasks) {
+      // Get total possible classes up to today
+      final today = DateTime.now();
+      final startDate = task.createdAt;
+      int possibleClasses = 0;
+      
+      // Count how many times this class should have occurred
+      for (DateTime date = startDate; date.isBefore(today) || _isSameDay(date, today); date = date.add(const Duration(days: 1))) {
+        if (task.shouldOccurOnDate(date)) {
+          possibleClasses++;
+        }
+      }
+      
+      // Count attended classes
+      final attendedClasses = task.totalAttendanceCount;
+      final missedClasses = possibleClasses - attendedClasses;
+      
+      totalAttended += attendedClasses;
+      totalMissed += missedClasses;
+    }
 
-    if (attended == 0 && missed == 0) {
+    if (totalAttended == 0 && totalMissed == 0) {
       return Center(
         child: Text(
           'No class data to display',
@@ -1065,7 +1048,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
 
     final sections = <PieChartSectionData>[];
     
-    if (attended > 0) {
+    if (totalAttended > 0) {
       sections.add(PieChartSectionData(
         gradient: LinearGradient(
           colors: [
@@ -1073,8 +1056,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
             ThemeProvider.gradientColors[6], // Light Cyan
           ],
         ),
-        value: attended.toDouble(),
-        title: '$attended',
+        value: totalAttended.toDouble(),
+        title: '$totalAttended',
         radius: 70,
         titleStyle: const TextStyle(
           fontSize: 18,
@@ -1091,7 +1074,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
       ));
     }
     
-    if (missed > 0) {
+    if (totalMissed > 0) {
       sections.add(PieChartSectionData(
         gradient: LinearGradient(
           colors: [
@@ -1099,8 +1082,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
             ThemeProvider.gradientColors[1], // Purple
           ],
         ),
-        value: missed.toDouble(),
-        title: '$missed',
+        value: totalMissed.toDouble(),
+        title: '$totalMissed',
         radius: 70,
         titleStyle: const TextStyle(
           fontSize: 18,
@@ -1183,12 +1166,33 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
   }
 
   int _calculateAttendanceRate(List<Task> classTasks) {
-    final attended = classTasks.where((task) => task.isCompleted).length;
-    final missed = classTasks.where((task) => !task.isCompleted && _isClassInPast(task)).length;
-    final total = attended + missed;
+    int totalAttended = 0;
+    int totalPossible = 0;
     
-    if (total == 0) return 0;
-    return (attended / total * 100).round();
+    final today = DateTime.now();
+    
+    for (final task in classTasks) {
+      final startDate = task.createdAt;
+      
+      // Count how many times this class should have occurred up to today
+      for (DateTime date = startDate; date.isBefore(today) || _isSameDay(date, today); date = date.add(const Duration(days: 1))) {
+        if (task.shouldOccurOnDate(date)) {
+          totalPossible++;
+        }
+      }
+      
+      // Count attended classes
+      totalAttended += task.totalAttendanceCount;
+    }
+    
+    if (totalPossible == 0) return 0;
+    return (totalAttended / totalPossible * 100).round();
+  }
+
+  bool _isSameDay(DateTime date1, DateTime date2) {
+    return date1.year == date2.year &&
+        date1.month == date2.month &&
+        date1.day == date2.day;
   }
 
   Widget _buildPrayerAnalytics() {

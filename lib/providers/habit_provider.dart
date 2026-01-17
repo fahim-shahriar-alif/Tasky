@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
-import 'package:intl/intl.dart';
 import '../models/habit.dart';
 import '../services/storage_service.dart';
 
@@ -116,107 +115,10 @@ class HabitProvider extends ChangeNotifier {
     return streak;
   }
 
-  // Test method to verify habit availability
-  void testHabitAvailability() {
-    print('=== TESTING HABIT AVAILABILITY ===');
-    final testDates = [
-      DateTime.now().subtract(const Duration(days: 3)),
-      DateTime.now().subtract(const Duration(days: 2)),
-      DateTime.now().subtract(const Duration(days: 1)),
-      DateTime.now(),
-      DateTime.now().add(const Duration(days: 1)),
-    ];
-    
-    for (final habit in _habits) {
-      print('Habit: ${habit.name}');
-      print('  Created: ${habit.createdAt}');
-      print('  Is Active: ${habit.isActive}');
-      
-      for (final date in testDates) {
-        final available = isHabitAvailableForDate(habit.id, date);
-        final completed = isHabitCompletedOnDate(habit.id, date);
-        print('  Date ${DateFormat('yyyy-MM-dd').format(date)}: Available=$available, Completed=$completed');
-      }
-      print('---');
-    }
-    print('=== END TEST ===');
-  }
-
-  // Debug method to print all habit information
-  void debugHabitInfo() {
-    print('=== HABIT DEBUG INFO ===');
-    print('Selected Date: $_selectedDate');
-    final today = DateTime.now();
-    final todayNormalized = DateTime(today.year, today.month, today.day);
-    print('Today: $today (normalized: $todayNormalized)');
-    print('Total Habits: ${_habits.length}');
-    
-    for (final habit in _habits) {
-      print('Habit: ${habit.name} (ID: ${habit.id})');
-      print('  Created: ${habit.createdAt}');
-      print('  Available for selected date: ${isHabitAvailableForDate(habit.id, _selectedDate)}');
-      print('  Completed on selected date: ${isHabitCompletedOnDate(habit.id, _selectedDate)}');
-      
-      final habitLogs = _habitLogs.where((log) => log.habitId == habit.id && log.isCompleted).toList()
-        ..sort((a, b) => b.date.compareTo(a.date));
-      print('  Total completed logs: ${habitLogs.length}');
-      
-      print('  Completed dates (valid for streak):');
-      for (final log in habitLogs) {
-        final logDate = DateTime(log.date.year, log.date.month, log.date.day);
-        final daysDiff = todayNormalized.difference(logDate).inDays;
-        final isValidForStreak = logDate.isBefore(todayNormalized) || logDate.isAtSameMomentAs(todayNormalized);
-        final status = isValidForStreak ? '✅' : '❌ FUTURE';
-        print('    ${DateFormat('yyyy-MM-dd').format(logDate)} (${daysDiff} days ago) $status');
-      }
-      
-      final streakDebug = getHabitStreakDebug(habit.id);
-      print('  Streak calculation: ${streakDebug['calculatedStreak']}');
-      print('---');
-    }
-    print('=== END DEBUG INFO ===');
-  }
-
-  // Debug method to get detailed streak information
-  Map<String, dynamic> getHabitStreakDebug(String habitId) {
-    final logs = _habitLogs
-        .where((log) => log.habitId == habitId && log.isCompleted)
-        .toList()
-      ..sort((a, b) => b.date.compareTo(a.date));
-
-    final today = DateTime.now();
-    final todayDate = DateTime(today.year, today.month, today.day);
-    
-    // Create list of completed dates
-    final completedDates = logs.map((log) {
-      final logDate = DateTime(log.date.year, log.date.month, log.date.day);
-      return {
-        'date': DateFormat('yyyy-MM-dd').format(logDate),
-        'daysDifference': todayDate.difference(logDate).inDays,
-      };
-    }).toList();
-    
-    return {
-      'habitId': habitId,
-      'totalCompletedLogs': logs.length,
-      'completedDates': completedDates,
-      'calculatedStreak': getHabitStreak(habitId),
-      'todayDate': DateFormat('yyyy-MM-dd').format(todayDate),
-    };
-  }
-
   // Set selected date
   void setSelectedDate(DateTime date) {
     _selectedDate = DateTime(date.year, date.month, date.day);
-    print('Selected date changed to: $_selectedDate');
-    print('Available habits for this date: ${habitsForSelectedDate.length}');
     notifyListeners();
-  }
-
-  // Force reload all data
-  Future<void> forceReload() async {
-    await loadHabits();
-    debugHabitInfo();
   }
 
   // Load habits and logs from storage
